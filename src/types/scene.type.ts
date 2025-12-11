@@ -11,6 +11,10 @@ export type Scene = {
 	 * @param gameTime the deltatime that happened betweent he last frame
 	 * */
 	update: (gameTime: number) => void;
-
+	/**
+	 * Renders the scene to the canvas
+	 *
+	 * @param renderer The three webgl renderer instance
+	 * */
 	render: (renderer: Three.WebGLRenderer) => void;
 };
