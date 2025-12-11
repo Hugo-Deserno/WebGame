@@ -13,6 +13,11 @@ export class StaticCamera extends BaseModel implements Model {
 			0.1,
 			1000,
 		);
+		window.addEventListener("resize", () => {
+			this.perspectiveCamera.aspect =
+				window.innerWidth / window.innerHeight;
+			this.perspectiveCamera.updateProjectionMatrix();
+		});
 		return this;
 	}
 

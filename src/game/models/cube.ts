@@ -43,8 +43,6 @@ export class Cube extends BaseModel implements Model {
 			throw new SyntaxError(
 				`model is not constructed. Please call .end() to finish it`,
 			);
-		this.boxMesh.rotateX(0.1);
-		this.boxMesh.rotateY(0.1);
 	}
 
 	public add(scene: Three.Scene): void {

@@ -16,11 +16,14 @@ export class MainScene implements Scene {
 	}
 
 	public loadContents(): void {
-		const boxMesh: Cube = new Cube(new Three.Vector3(1, 1, 1))
-			.AddPosition(new Three.Vector3(0, 1, 1))
-			.end();
+		const boxMesh: Cube = new Cube(new Three.Vector3(3, 3, 3)).end();
 		boxMesh.add(this.sceneInstance);
 		this.modelCache.set("cube", boxMesh);
+
+		const floorMesh: Cube = new Cube(new Three.Vector3(10, 1, 10))
+			.AddPosition(new Three.Vector3(0, -5, 0))
+			.end();
+		floorMesh.add(this.sceneInstance);
 
 		const freeCamera: FreeCamera = new FreeCamera(75)
 			.addPosition(new Three.Vector3(0, 0, 4))
