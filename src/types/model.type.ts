@@ -1,4 +1,4 @@
-import * as three from "three";
+import type Three from "../game/threeSingleton";
 
 export type Model = {
 	/**
@@ -20,5 +20,11 @@ export type Model = {
 	 * @param scene The scene which the model will be added to;
 	 * @see works after building
 	 * */
-	add: (scene: three.Scene) => void;
+	add?: (scene: Three.Scene) => void;
+	/**
+	 * Returns resources from the model
+	 *
+	 * @returns certain resources from the model
+	 * */
+	get?: () => unknown;
 };

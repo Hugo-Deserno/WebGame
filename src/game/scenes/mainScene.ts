@@ -3,7 +3,7 @@ import { DynamicCache } from "../common/cache";
 import type { Model } from "../../types/model.type";
 import { Cube } from "../models/cube";
 import Three from "../threeSingleton";
-import { StaticCamera } from "../models/staticCamera";
+import { FreeCamera } from "../models/freeCamera";
 
 export class MainScene implements Scene {
 	private readonly sceneInstance: Three.Scene;
@@ -22,23 +22,22 @@ export class MainScene implements Scene {
 		boxMesh.add(this.sceneInstance);
 		this.modelCache.set("cube", boxMesh);
 
-		const staticCamera: StaticCamera = new StaticCamera(75)
+		const freeCamera: FreeCamera = new FreeCamera(75)
 			.addPosition(new Three.Vector3(0, 0, 4))
 			.end();
-		this.modelCache.set("camera", staticCamera);
+		this.modelCache.set("camera", freeCamera);
 	}
 
 	public update(gameTime: number): void {
 		const boxMesh: Cube = this.modelCache.get<Cube>("cube");
 		boxMesh.update(gameTime);
+		const camera: FreeCamera = this.modelCache.get<FreeCamera>("camera");
+		camera.update(gameTime);
 	}
 
 	public render(renderer: Three.WebGLRenderer): void {
-		const camera: StaticCamera =
-			this.modelCache.get<StaticCamera>("camera");
-		const perspectiveCamera: Three.PerspectiveCamera = camera.add(
-			this.sceneInstance,
-		);
+		const camera: FreeCamera = this.modelCache.get<FreeCamera>("camera");
+		const perspectiveCamera: Three.PerspectiveCamera = camera.get();
 
 		renderer.render(this.sceneInstance, perspectiveCamera);
 	}

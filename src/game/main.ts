@@ -58,6 +58,9 @@ export class GameCore {
 			canvas: canvasElement,
 		});
 		webGLRenderer.setSize(window.innerWidth, window.innerHeight);
+		window.addEventListener("resize", () => {
+			webGLRenderer.setSize(window.innerWidth, window.innerHeight);
+		});
 		this.generalCache.set("renderer", webGLRenderer);
 
 		this.gameProcess();
