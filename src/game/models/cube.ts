@@ -32,6 +32,12 @@ export class Cube extends BaseModel implements Model {
 		return this;
 	}
 
+	public addPhongMaterial(material: Three.MeshPhongMaterial): Cube {
+		this.constructredCheck();
+		this.boxMesh.material = material;
+		return this;
+	}
+
 	public end(): Cube {
 		this.constructredCheck();
 		this.isConstructed = true;

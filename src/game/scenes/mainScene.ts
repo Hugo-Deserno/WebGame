@@ -6,6 +6,7 @@ import Three from "../threeSingleton";
 import { FreeCamera } from "../models/freeCamera";
 import { StaticCamera } from "../models/staticCamera";
 import type { CameraAxis } from "../../types/cameraAxis.type";
+import { PointLight } from "../models/pointLight";
 
 type Cameras = FreeCamera | StaticCamera;
 
@@ -24,7 +25,7 @@ export class MainScene implements Scene {
 
 		/**
 		 * When pressing shift + F
-		 * The user can switch between static cam and free camera
+		 * The user can switch between static cam and free cameraw
 		 * */
 		let isFreeCameraEnabled: boolean = false;
 		window.addEventListener("keypress", (event: KeyboardEvent) => {
@@ -55,12 +56,22 @@ export class MainScene implements Scene {
 	}
 
 	public loadContents(): void {
-		const boxMesh: Cube = new Cube(new Three.Vector3(3, 3, 3)).end();
+		const boxMesh: Cube = new Cube(new Three.Vector3(3, 3, 3))
+			.addPhongMaterial(new Three.MeshPhongMaterial({ color: 0xffffff }))
+			.end();
 		boxMesh.add(this.sceneInstance);
 		this.modelCache.set("cube", boxMesh);
 
+		const pointLight: PointLight = new PointLight()
+			.addPosition(new Three.Vector3(0, 5, 5))
+			.addDistance(15)
+			.addIntensity(2)
+			.end();
+		pointLight.add(this.sceneInstance);
+
 		const floorMesh: Cube = new Cube(new Three.Vector3(10, 1, 10))
 			.AddPosition(new Three.Vector3(0, -5, 0))
+			.addPhongMaterial(new Three.MeshPhongMaterial({ color: 0xffffff }))
 			.end();
 		floorMesh.add(this.sceneInstance);
 
