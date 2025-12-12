@@ -7,13 +7,14 @@ import { FreeCamera } from "../models/freeCamera";
 import { StaticCamera } from "../models/staticCamera";
 import type { CameraAxis } from "../../types/cameraAxis.type";
 import { PointLight } from "../models/pointLight";
+import { AmbientLight } from "../models/ambientLight";
 
 type Cameras = FreeCamera | StaticCamera;
 
 export class MainScene implements Scene {
 	private readonly sceneInstance: Three.Scene;
-
 	private readonly modelCache: DynamicCache<Model>;
+
 	private cameraAxis: CameraAxis = {
 		yaw: 0,
 		pitch: 0,
@@ -25,7 +26,7 @@ export class MainScene implements Scene {
 
 		/**
 		 * When pressing shift + F
-		 * The user can switch between static cam and free cameraw
+		 * The user can switch between static cam and free camera
 		 * */
 		let isFreeCameraEnabled: boolean = false;
 		window.addEventListener("keypress", (event: KeyboardEvent) => {
@@ -67,9 +68,13 @@ export class MainScene implements Scene {
 			.addPosition(new Three.Vector3(0, 10, 10))
 			.addDistance(20)
 			.addShadow()
+			.addHelper()
 			.addIntensity(100)
 			.end();
 		pointLight.add(this.sceneInstance);
+
+		const ambientLight: AmbientLight = new AmbientLight(0.01).end();
+		ambientLight.add(this.sceneInstance);
 
 		const floorMesh: Cube = new Cube(new Three.Vector3(10, 1, 10))
 			.addPosition(new Three.Vector3(0, -5, 0))

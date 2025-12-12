@@ -7,7 +7,7 @@ import Three from "../threeSingleton";
 
 export class Renderer {
 	private webGLRenderer: Three.WebGLRenderer | null;
-	private cache: LooseCache;
+	private readonly cache: LooseCache;
 
 	constructor(canvasElement: HTMLCanvasElement) {
 		this.cache = new LooseCache("renderCache");
@@ -24,8 +24,16 @@ export class Renderer {
 		);
 
 		this.loadRenderer();
+		window.addEventListener("resize", () => {
+			if (!this.webGLRenderer) return;
+			this.webGLRenderer.setSize(window.innerWidth, window.innerHeight);
+		});
 	}
 
+	/**
+	 * Reloads the fields of the renderer that don't require a
+	 * new webGLrenderer to be created
+	 * */
 	private lazyReloadRenderer(): void {
 		if (!this.webGLRenderer) return;
 
@@ -36,28 +44,27 @@ export class Renderer {
 		this.webGLRenderer.setPixelRatio(window.devicePixelRatio);
 	}
 
-	private resizeWindow(): void {
-		if (!this.webGLRenderer) return;
-		this.webGLRenderer.setSize(window.innerWidth, window.innerHeight);
-	}
+	/**
+	 * Hard reloads the renderer and creates a new renderer instance
+	 * */
 	private reloadRenderer(): void {
 		const gameConfigurations: GameConfigurationsConfig =
 			GameConfigurations.getConfigurations();
-
-		if (this.webGLRenderer) {
-			window.removeEventListener("resize", this.resizeWindow);
-		}
 
 		this.webGLRenderer = new Three.WebGLRenderer({
 			canvas: this.cache.get<HTMLCanvasElement>("canvas"),
 			antialias: gameConfigurations.antiAlias,
 		});
-		this.resizeWindow();
-		window.addEventListener("resize", this.resizeWindow);
+		this.webGLRenderer.setSize(window.innerWidth, window.innerHeight);
 		this.lazyReloadRenderer();
 	}
 	private loadRenderer: () => void = this.reloadRenderer;
 
+	/**
+	 * Return the current WebGL renderer
+	 *
+	 * @return the current webGL renderer
+	 * */
 	public get(): Three.WebGLRenderer {
 		if (!this.webGLRenderer) throw new Error("WebGL render doesn't exist");
 		return this.webGLRenderer;

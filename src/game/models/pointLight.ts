@@ -7,19 +7,27 @@ import Three from "../threeSingleton";
 import { BaseModel } from "./baseModel";
 
 export class PointLight extends BaseModel implements Model {
-	private readonly pointLight: Three.SpotLight;
+	private readonly pointLight: Three.PointLight;
+	private readonly pointLightHelper: Three.PointLightHelper;
 
 	constructor(intensity?: number, distance?: number, decay?: number) {
 		super();
 		if (!intensity) intensity = 1;
 		if (!distance) distance = 100;
 		if (!decay) distance = 2;
-		this.pointLight = new Three.SpotLight(
+		this.pointLight = new Three.PointLight(
 			0xffffff,
 			intensity,
 			distance,
 			decay,
 		);
+		this.pointLightHelper = new Three.PointLightHelper(
+			this.pointLight,
+			1,
+			0xffffff,
+		);
+		this.pointLightHelper.update();
+		this.pointLightHelper.visible = false;
 	}
 
 	public addShadow(resolution?: Three.Vector2): PointLight {
@@ -44,6 +52,7 @@ export class PointLight extends BaseModel implements Model {
 	public addPosition(position: Three.Vector3): PointLight {
 		this.constructredCheck();
 		this.pointLight.position.copy(position);
+		this.pointLightHelper.update();
 		return this;
 	}
 
@@ -71,6 +80,15 @@ export class PointLight extends BaseModel implements Model {
 		return this;
 	}
 
+	public addHelper(color?: Three.Color): PointLight {
+		this.constructredCheck();
+		this.pointLightHelper.visible = true;
+		if (color) {
+			this.pointLightHelper.color = color;
+		}
+		return this;
+	}
+
 	public end(): PointLight {
 		this.constructredCheck();
 		this.isConstructed = true;
@@ -80,5 +98,6 @@ export class PointLight extends BaseModel implements Model {
 	public add(scene: Three.Scene): void {
 		this.notConstructedCheck();
 		scene.add(this.pointLight);
+		scene.add(this.pointLightHelper);
 	}
 }

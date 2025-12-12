@@ -51,18 +51,8 @@ export class Cube extends BaseModel implements Model {
 		return this;
 	}
 
-	public update(): void {
-		if (!this.isConstructed)
-			throw new SyntaxError(
-				`model is not constructed. Please call .end() to finish it`,
-			);
-	}
-
 	public add(scene: Three.Scene): void {
-		if (!this.isConstructed)
-			throw new SyntaxError(
-				`model is not constructed. Please call .end() to finish it`,
-			);
+		this.notConstructedCheck();
 		scene.add(this.boxMesh);
 	}
 }

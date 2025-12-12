@@ -3,40 +3,48 @@ import { MainScene } from "./scenes/mainScene";
 import { LooseCache } from "./core/cache";
 import Three from "./threeSingleton";
 import { Renderer } from "./common/render";
-import { GameConfigurations } from "./core/configuration";
 
-export function gameInit() {}
-
+// Singleton pattern game loop
+// can only be created once
 export class GameCore {
-	private getRunner: () => boolean;
-	private setRunner: (state: boolean) => void;
-	private canvasElement: HTMLCanvasElement | null = null;
+	private static instance: GameCore;
+	private static canvasElement: HTMLCanvasElement;
 
-	private currentScene: Scene | null;
-	private generalCache: LooseCache;
+	private static currentScene: Scene | null;
+	private static generalCache: LooseCache;
 
-	constructor() {
-		this.currentScene = null;
-		this.generalCache = new LooseCache("generalCache");
-
-		let isRunning: boolean = false;
-
-		this.getRunner = function (): boolean {
-			return isRunning;
-		};
-
-		this.setRunner = function (): void {
-			if (isRunning) throw new Error(`Cannot set runner. Is already set`);
-			isRunning = true;
-		};
+	private constructor(canvas: HTMLCanvasElement) {
+		GameCore.instance = this;
+		GameCore.canvasElement = canvas;
+		GameCore.generalCache = new LooseCache("generalCache");
 
 		window.addEventListener("contextmenu", (event: PointerEvent) =>
 			event.preventDefault(),
 		);
 		window.addEventListener("mousedown", (event: MouseEvent) => {
-			if (event.button !== 2 || this.canvasElement === null) return;
-			this.canvasElement.requestPointerLock();
+			if (event.button !== 2 || GameCore.canvasElement === null) return;
+			GameCore.canvasElement.requestPointerLock();
 		});
+	}
+
+	/**
+	 * Runs the instance of the game
+	 *
+	 * @param canvasElement The element to which the game will be attached to
+	 * */
+	public static run(canvas: HTMLCanvasElement) {
+		if (this.instance) throw new Error(`Game Instance is already running`);
+		new GameCore(canvas);
+
+		this.currentScene = new MainScene();
+		this.currentScene.loadContents();
+
+		this.generalCache.set("clock", new Three.Clock());
+
+		const renderer: Renderer = new Renderer(this.canvasElement);
+		this.generalCache.set("renderer", renderer);
+
+		this.gameProcess();
 	}
 
 	/**
@@ -45,37 +53,14 @@ export class GameCore {
 	 *
 	 * @returns The running state of the game
 	 * */
-	public getRunningState(): boolean {
-		return this.getRunner();
-	}
-
-	/**
-	 * Runs the instance of the game
-	 *
-	 * @param canvasElement The element to which the game will be attached to
-	 * */
-	public run(canvasElement: HTMLCanvasElement): void {
-		const isRunning: boolean = this.getRunner();
-		if (isRunning) throw new Error(`Game Instance is already running`);
-
-		this.canvasElement = canvasElement;
-		this.setRunner(true);
-
-		this.currentScene = new MainScene();
-		this.currentScene.loadContents();
-
-		this.generalCache.set("clock", new Three.Clock());
-
-		const renderer: Renderer = new Renderer(canvasElement);
-		this.generalCache.set("renderer", renderer);
-
-		this.gameProcess();
+	public static getRunningState(): boolean {
+		return !!this.instance;
 	}
 
 	/**
 	 * Preforms a update on the game and renders it
 	 * */
-	private gameProcess(): void {
+	private static gameProcess(): void {
 		if (!this.currentScene) throw new Error("current scene is empty");
 		requestAnimationFrame(this.gameProcess.bind(this));
 
