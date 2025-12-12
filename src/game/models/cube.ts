@@ -29,7 +29,7 @@ export class Cube extends BaseModel implements Model {
 
 	public addPosition(position: Three.Vector3): Cube {
 		this.constructredCheck();
-		this.boxMesh.position.set(position.x, position.y, position.z);
+		this.boxMesh.position.copy(position);
 		return this;
 	}
 

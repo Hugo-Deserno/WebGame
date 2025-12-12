@@ -3,14 +3,14 @@ import Three from "../threeSingleton";
 import { BaseModel } from "./baseModel";
 
 export class PointLight extends BaseModel implements Model {
-	private readonly pointLight: Three.PointLight;
+	private readonly pointLight: Three.SpotLight;
 
 	constructor(intensity?: number, distance?: number, decay?: number) {
 		super();
 		if (!intensity) intensity = 1;
 		if (!distance) distance = 100;
 		if (!decay) distance = 2;
-		this.pointLight = new Three.PointLight(
+		this.pointLight = new Three.SpotLight(
 			0xffffff,
 			intensity,
 			distance,
@@ -21,7 +21,11 @@ export class PointLight extends BaseModel implements Model {
 	public addShadow(resolution?: Three.Vector2): PointLight {
 		this.constructredCheck();
 		this.pointLight.castShadow = true;
-		if (resolution) this.pointLight.shadow.mapSize.copy(resolution);
+		this.pointLight.shadow.mapSize.copy(
+			resolution ? resolution : new Three.Vector2(1024, 1024),
+		);
+		this.pointLight.shadow.radius = 2;
+		this.pointLight.shadow.bias = -0.0005;
 		return this;
 	}
 

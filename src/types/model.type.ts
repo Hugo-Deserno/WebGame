@@ -25,6 +25,7 @@ export type Model = {
 	 * Returns resources from the model
 	 *
 	 * @returns certain resources from the model
+	 * @see works after building
 	 * */
 	get?: () => unknown;
 };

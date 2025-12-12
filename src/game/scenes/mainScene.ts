@@ -64,9 +64,9 @@ export class MainScene implements Scene {
 		this.modelCache.set("cube", boxMesh);
 
 		const pointLight: PointLight = new PointLight()
-			.addPosition(new Three.Vector3(0, 10, 10))
-			.addDistance(22)
-			.addShadow(new Three.Vector2(2000, 2000))
+			.addPosition(new Three.Vector3(0, 30, 30))
+			.addDistance(100)
+			.addShadow()
 			.addIntensity(50)
 			.end();
 		pointLight.add(this.sceneInstance);
