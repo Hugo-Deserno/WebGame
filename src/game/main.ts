@@ -1,7 +1,9 @@
 import type { Scene } from "../types/scene.type";
 import { MainScene } from "./scenes/mainScene";
-import { LooseCache } from "./common/cache";
+import { LooseCache } from "./core/cache";
 import Three from "./threeSingleton";
+import { Renderer } from "./common/render";
+import { GameConfigurations } from "./core/configuration";
 
 export function gameInit() {}
 
@@ -64,17 +66,8 @@ export class GameCore {
 
 		this.generalCache.set("clock", new Three.Clock());
 
-		const webGLRenderer: Three.WebGLRenderer = new Three.WebGLRenderer({
-			canvas: canvasElement,
-			antialias: true,
-		});
-		webGLRenderer.setPixelRatio(window.devicePixelRatio);
-		webGLRenderer.setSize(window.innerWidth, window.innerHeight);
-		webGLRenderer.shadowMap.enabled = true;
-		window.addEventListener("resize", () => {
-			webGLRenderer.setSize(window.innerWidth, window.innerHeight);
-		});
-		this.generalCache.set("renderer", webGLRenderer);
+		const renderer: Renderer = new Renderer(canvasElement);
+		this.generalCache.set("renderer", renderer);
 
 		this.gameProcess();
 	}
@@ -88,10 +81,11 @@ export class GameCore {
 
 		const clock: Three.Clock = this.generalCache.get<Three.Clock>("clock");
 		const deltaTime: number = clock.getDelta();
-		const webGLRenderer: Three.WebGLRenderer =
-			this.generalCache.get<Three.WebGLRenderer>("renderer");
+
+		const renderer: Renderer = this.generalCache.get<Renderer>("renderer");
+		const renderDevice: Three.WebGLRenderer = renderer.get();
 
 		this.currentScene.update(deltaTime);
-		this.currentScene.render(webGLRenderer);
+		this.currentScene.render(renderDevice);
 	}
 }

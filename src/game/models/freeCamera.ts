@@ -1,8 +1,11 @@
 import type { Model } from "../../types/model.type";
-import { KeyManager } from "../common/keyManager";
+import { KeyManager } from "../core/keyManager";
 import Three from "../threeSingleton";
 import { BaseModel } from "./baseModel";
 import type { CameraAxis } from "../../types/cameraAxis.type";
+
+const FLY_SPEED_NORMAL: number = 20;
+const FLY_SPEED_FAST: number = 100;
 
 export class FreeCamera extends BaseModel implements Model {
 	private readonly perspectiveCamera: Three.PerspectiveCamera;
@@ -12,8 +15,7 @@ export class FreeCamera extends BaseModel implements Model {
 	private fieldOfView: number;
 	private cameraGyro: CameraAxis;
 	private baseQuaternion: Three.Quaternion;
-
-	private flySpeed: number = 10;
+	private flySpeed;
 
 	constructor(fieldOfView: number) {
 		super();
@@ -31,6 +33,7 @@ export class FreeCamera extends BaseModel implements Model {
 		this.fieldOfView = fieldOfView;
 		this.baseQuaternion = this.perspectiveCamera.quaternion.clone();
 		this.isMouseDown = false;
+		this.flySpeed = FLY_SPEED_NORMAL;
 
 		window.addEventListener("mousedown", (event: MouseEvent) => {
 			if (event.button !== 2) return;
@@ -80,6 +83,7 @@ export class FreeCamera extends BaseModel implements Model {
 	}
 
 	public update(gameTime: number): void {
+		// camera movement
 		if (this.isMouseDown) {
 			this.cameraGyro.yaw += this.mouseVelocity.x * 0.005 * -1;
 			this.cameraGyro.pitch += this.mouseVelocity.y * 0.005 * -1;
@@ -109,10 +113,13 @@ export class FreeCamera extends BaseModel implements Model {
 			.multiply(quaternionYaw)
 			.multiply(quaternionPitch);
 
+		// Movement
 		this.flySpeed = Three.MathUtils.lerp(
 			this.flySpeed,
-			KeyManager.isActionPressed("sprint") ? 100 : 10,
-			0.1,
+			KeyManager.isActionPressed("sprint")
+				? FLY_SPEED_FAST
+				: FLY_SPEED_NORMAL,
+			1 - Math.exp(-10 * gameTime),
 		);
 
 		const movementVector: Three.Vector3 = new Three.Vector3(0, 0, 0);
@@ -145,7 +152,7 @@ export class FreeCamera extends BaseModel implements Model {
 			KeyManager.isActionPressed("zoom")
 				? this.fieldOfView - 50
 				: this.fieldOfView,
-			0.3,
+			1 - Math.exp(-30 * gameTime),
 		);
 		this.perspectiveCamera.updateProjectionMatrix();
 	}

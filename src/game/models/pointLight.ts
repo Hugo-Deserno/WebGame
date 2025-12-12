@@ -1,4 +1,8 @@
 import type { Model } from "../../types/model.type";
+import {
+	GameConfigurations,
+	type GameConfigurationsConfig,
+} from "../core/configuration";
 import Three from "../threeSingleton";
 import { BaseModel } from "./baseModel";
 
@@ -19,13 +23,21 @@ export class PointLight extends BaseModel implements Model {
 	}
 
 	public addShadow(resolution?: Three.Vector2): PointLight {
+		const gameConfigurations: GameConfigurationsConfig =
+			GameConfigurations.getConfigurations();
+
 		this.constructredCheck();
 		this.pointLight.castShadow = true;
 		this.pointLight.shadow.mapSize.copy(
 			resolution ? resolution : new Three.Vector2(1024, 1024),
 		);
-		this.pointLight.shadow.radius = 2;
 		this.pointLight.shadow.bias = -0.0005;
+
+		this.pointLight.shadow.radius = gameConfigurations.shadowSoftness;
+		GameConfigurations.observeConfiguration(
+			"shadowSoftness",
+			(state: number) => (this.pointLight.shadow.radius = state),
+		);
 		return this;
 	}
 

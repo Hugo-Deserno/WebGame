@@ -1,4 +1,4 @@
-import { KEY_MAP } from "../keyMap";
+import { KEY_MAP } from "./keyMap";
 
 type Actions = keyof typeof KEY_MAP;
 type ObserverPair = [Actions, () => void];

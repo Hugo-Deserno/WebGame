@@ -1,6 +1,7 @@
 export type GameConfigurationsConfig = {
 	fieldOfView: number;
 	shadows: boolean;
+	shadowSoftness: number; // range between 0 and 10
 	antiAlias: boolean;
 };
 
@@ -12,6 +13,7 @@ export class GameConfigurations {
 
 	/**
 	 * Checks if a configuration is in the config. If not, then it errors
+	 *
 	 * @param ConfigurationName The config name that should be checked
 	 * */
 	private static configurationEntryExists<
@@ -32,6 +34,7 @@ export class GameConfigurations {
 			fieldOfView: 70,
 			antiAlias: true,
 			shadows: true,
+			shadowSoftness: 2,
 		};
 		GameConfigurations.configurationSignals = new Map<
 			(State: unknown) => void,
@@ -41,6 +44,7 @@ export class GameConfigurations {
 
 	/**
 	 * Gets the current game's configuration struct
+	 *
 	 * @returns The game's current configuration struct
 	 * */
 	public static getConfigurations(): GameConfigurationsConfig {
@@ -50,6 +54,7 @@ export class GameConfigurations {
 
 	/**
 	 * Sets a singular configuration globally (not updated via signal)
+	 *
 	 * @param ConfigurationName the configuration which will be overwritten
 	 * @param Value The value the overwritten config entry will be
 	 * */
@@ -57,8 +62,8 @@ export class GameConfigurations {
 		configurationName: T,
 		value: GameConfigurationsConfig[T],
 	): void {
-		this.configurationEntryExists(configurationName);
 		if (!this.instance) new GameConfigurations();
+		this.configurationEntryExists(configurationName);
 
 		GameConfigurations.configuration[configurationName] = value;
 
@@ -75,17 +80,18 @@ export class GameConfigurations {
 
 	/**
 	 * Fires a signal to a function when a configuration value gets updated
+	 *
 	 * @param ConfigurationName The name of the config Entry that will be tracked
 	 * @param Callback The callback that will be fired when the setting gets updated
 	 * */
-	public static onUpdateConfiguration<
+	public static observeConfiguration<
 		T extends keyof GameConfigurationsConfig,
 	>(
 		configurationName: T,
 		callback: (State: GameConfigurationsConfig[T]) => void,
 	) {
-		this.configurationEntryExists(configurationName);
 		if (!this.instance) new GameConfigurations();
+		this.configurationEntryExists(configurationName);
 
 		this.configurationSignals.set(
 			callback as (State: unknown) => void,

@@ -1,5 +1,5 @@
 import type { Scene } from "../../types/scene.type";
-import { DynamicCache } from "../common/cache";
+import { DynamicCache } from "../core/cache";
 import type { Model } from "../../types/model.type";
 import { Cube } from "../models/cube";
 import Three from "../threeSingleton";
@@ -64,10 +64,10 @@ export class MainScene implements Scene {
 		this.modelCache.set("cube", boxMesh);
 
 		const pointLight: PointLight = new PointLight()
-			.addPosition(new Three.Vector3(0, 30, 30))
-			.addDistance(100)
+			.addPosition(new Three.Vector3(0, 10, 10))
+			.addDistance(20)
 			.addShadow()
-			.addIntensity(50)
+			.addIntensity(100)
 			.end();
 		pointLight.add(this.sceneInstance);
 
@@ -85,9 +85,6 @@ export class MainScene implements Scene {
 	}
 
 	public update(gameTime: number): void {
-		const boxMesh: Cube = this.modelCache.get<Cube>("cube");
-		boxMesh.update(gameTime);
-
 		const camera: Cameras = this.modelCache.get<Cameras>("camera");
 		if (camera instanceof FreeCamera) camera.update(gameTime);
 	}
