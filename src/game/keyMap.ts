@@ -8,4 +8,6 @@ export const KEY_MAP = {
 	moveBackward: ["s", "arrowdown"],
 	moveRight: ["d", "arrowright"],
 	moveLeft: ["a", "arrowleft"],
+	zoom: ["z"],
+	sprint: ["shift"],
 };

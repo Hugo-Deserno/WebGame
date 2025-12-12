@@ -22,10 +22,6 @@ export class Cache<T> {
 	 * @param the object that will be cached
 	 * */
 	public set(key: string, object: T): void {
-		if (this.cacheMap.has(key))
-			throw new RangeError(
-				`${key} is already in cache ${this.cacheName}`,
-			);
 		this.cacheMap.set(key, object);
 	}
 

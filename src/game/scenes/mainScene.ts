@@ -4,15 +4,54 @@ import type { Model } from "../../types/model.type";
 import { Cube } from "../models/cube";
 import Three from "../threeSingleton";
 import { FreeCamera } from "../models/freeCamera";
+import { StaticCamera } from "../models/staticCamera";
+import type { CameraAxis } from "../../types/cameraAxis.type";
+
+type Cameras = FreeCamera | StaticCamera;
 
 export class MainScene implements Scene {
 	private readonly sceneInstance: Three.Scene;
 
 	private readonly modelCache: DynamicCache<Model>;
+	private cameraAxis: CameraAxis = {
+		yaw: 0,
+		pitch: 0,
+	};
 
 	constructor() {
 		this.sceneInstance = new Three.Scene();
 		this.modelCache = new DynamicCache<Model>("modelCache");
+
+		/**
+		 * When pressing shift + F
+		 * The user can switch between static cam and free camera
+		 * */
+		let isFreeCameraEnabled: boolean = false;
+		window.addEventListener("keypress", (event: KeyboardEvent) => {
+			if (event.key !== "F") return;
+
+			if (!isFreeCameraEnabled) {
+				const staticCamera: StaticCamera =
+					this.modelCache.get<StaticCamera>("camera");
+
+				const freeCamera: FreeCamera = new FreeCamera(75)
+					.addPosition(staticCamera.getPosition())
+					.addAxis(this.cameraAxis)
+					.end();
+				this.modelCache.set("camera", freeCamera);
+			} else {
+				const freeCamera: FreeCamera =
+					this.modelCache.get<FreeCamera>("camera");
+				this.cameraAxis = freeCamera.getAxis();
+
+				const camera: StaticCamera = new StaticCamera(75)
+					.addPosition(freeCamera.getPosition())
+					.addRotation(freeCamera.getRotation())
+					.end();
+				this.modelCache.set("camera", camera);
+			}
+			isFreeCameraEnabled = !isFreeCameraEnabled;
+		});
 	}
 
 	public loadContents(): void {
@@ -25,21 +64,22 @@ export class MainScene implements Scene {
 			.end();
 		floorMesh.add(this.sceneInstance);
 
-		const freeCamera: FreeCamera = new FreeCamera(75)
-			.addPosition(new Three.Vector3(0, 0, 4))
+		const camera: StaticCamera = new StaticCamera(75)
+			.addPosition(new Three.Vector3(0, 0, 10))
 			.end();
-		this.modelCache.set("camera", freeCamera);
+		this.modelCache.set("camera", camera);
 	}
 
 	public update(gameTime: number): void {
 		const boxMesh: Cube = this.modelCache.get<Cube>("cube");
 		boxMesh.update(gameTime);
-		const camera: FreeCamera = this.modelCache.get<FreeCamera>("camera");
-		camera.update(gameTime);
+
+		const camera: Cameras = this.modelCache.get<Cameras>("camera");
+		if (camera instanceof FreeCamera) camera.update(gameTime);
 	}
 
 	public render(renderer: Three.WebGLRenderer): void {
-		const camera: FreeCamera = this.modelCache.get<FreeCamera>("camera");
+		const camera: Cameras = this.modelCache.get<Cameras>("camera");
 		const perspectiveCamera: Three.PerspectiveCamera = camera.get();
 
 		renderer.render(this.sceneInstance, perspectiveCamera);

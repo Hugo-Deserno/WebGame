@@ -26,10 +26,10 @@ export class GameCore {
 			isRunning = true;
 		};
 
-		document.addEventListener("contextmenu", (event: PointerEvent) =>
+		window.addEventListener("contextmenu", (event: PointerEvent) =>
 			event.preventDefault(),
 		);
-		document.addEventListener("mousedown", (event: MouseEvent) => {
+		window.addEventListener("mousedown", (event: MouseEvent) => {
 			if (event.button !== 2 || this.canvasElement === null) return;
 			this.canvasElement.requestPointerLock();
 		});

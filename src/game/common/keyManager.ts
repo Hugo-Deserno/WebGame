@@ -23,14 +23,14 @@ export class KeyManager {
 
 	private static init(): void {
 		this.isRunning = true;
-		document.addEventListener("keypress", (event: KeyboardEvent) => {
+		window.addEventListener("keypress", (event: KeyboardEvent) => {
 			this.observers.forEach((observerPair: ObserverPair) => {
 				if (!KEY_MAP[observerPair[0]].includes(event.key.toLowerCase()))
 					return;
 				observerPair[1]();
 			});
 		});
-		document.addEventListener("keydown", (event: KeyboardEvent) => {
+		window.addEventListener("keydown", (event: KeyboardEvent) => {
 			Object.entries(KEY_MAP).forEach(
 				(keyMapEntry: [string, Array<string>]) => {
 					const action = keyMapEntry[0] as Actions;
@@ -43,7 +43,7 @@ export class KeyManager {
 				},
 			);
 		});
-		document.addEventListener("keyup", (event: KeyboardEvent) => {
+		window.addEventListener("keyup", (event: KeyboardEvent) => {
 			Object.entries(KEY_MAP).forEach(
 				(keyMapEntry: [string, Array<string>]) => {
 					const action = keyMapEntry[0] as Actions;
@@ -91,7 +91,7 @@ export class KeyManager {
 	 * */
 	public static setAction(action: Actions, key: Array<string>): void {
 		this.keyRoamer(action);
-		KEY_DATA[action] = key;
+		KEY_MAP[action] = key;
 	}
 
 	/**
@@ -102,6 +102,6 @@ export class KeyManager {
 	 * */
 	public static getKeysFromAction(action: Actions): Array<string> {
 		this.keyRoamer(action);
-		return KEY_DATA[action];
+		return KEY_MAP[action];
 	}
 }

@@ -1,16 +1,18 @@
 import type { Model } from "../../types/model.type";
 import { KeyManager } from "../common/keyManager";
 import Three from "../threeSingleton";
-import { Util } from "../util";
 import { BaseModel } from "./baseModel";
+import type { CameraAxis } from "../../types/cameraAxis.type";
 
 export class FreeCamera extends BaseModel implements Model {
 	private readonly perspectiveCamera: Three.PerspectiveCamera;
 
-	private mouseDown: boolean;
 	private mouseVelocity: Three.Vector2;
+	private fieldOfView: number;
+	private cameraGyro: CameraAxis;
+	private baseQuaternion: Three.Quaternion;
 
-	private flySpeed: number = 1;
+	private flySpeed: number = 10;
 
 	constructor(fieldOfView: number) {
 		super();
@@ -20,24 +22,21 @@ export class FreeCamera extends BaseModel implements Model {
 			0.1,
 			1000,
 		);
+		this.cameraGyro = {
+			yaw: 0,
+			pitch: 0,
+		};
+		this.mouseVelocity = new Three.Vector2(0, 0);
+		this.fieldOfView = fieldOfView;
+		this.baseQuaternion = this.perspectiveCamera.quaternion.clone();
+
+		window.addEventListener("mousemove", (event: MouseEvent) => {
+			this.mouseVelocity.set(event.movementX, event.movementY);
+		});
 		window.addEventListener("resize", () => {
 			this.perspectiveCamera.aspect =
 				window.innerWidth / window.innerHeight;
 			this.perspectiveCamera.updateProjectionMatrix();
-		});
-		this.mouseDown = false;
-		this.mouseVelocity = new Three.Vector2(0, 0);
-
-		document.addEventListener("mousedown", (event: MouseEvent) => {
-			if (event.button !== 2) return;
-			this.mouseDown = true;
-		});
-		document.addEventListener("mouseup", (event: MouseEvent) => {
-			if (event.button !== 2) return;
-			this.mouseDown = false;
-		});
-		document.addEventListener("mousemove", (event: MouseEvent) => {
-			this.mouseVelocity.set(event.movementX, event.movementY);
 		});
 		return this;
 	}
@@ -48,9 +47,19 @@ export class FreeCamera extends BaseModel implements Model {
 		return this;
 	}
 
+	/**
+	 * Sets the yaw and pitch that will be converted to user input
+	 * */
+	public addAxis(cameraAxis: CameraAxis): FreeCamera {
+		this.constructredCheck();
+		this.cameraGyro = cameraAxis;
+		return this;
+	}
+
 	public addRotation(rotation: Three.Vector3): FreeCamera {
 		this.constructredCheck();
 		this.perspectiveCamera.rotation.set(rotation.x, rotation.y, rotation.z);
+		this.baseQuaternion = this.perspectiveCamera.quaternion.clone();
 		return this;
 	}
 
@@ -61,53 +70,99 @@ export class FreeCamera extends BaseModel implements Model {
 	}
 
 	public update(gameTime: number): void {
-		if (this.mouseDown) {
-			this.perspectiveCamera.rotateY((this.mouseVelocity.x / 200) * -1);
-			this.perspectiveCamera.rotateX((this.mouseVelocity.y / 200) * -1);
-			this.mouseVelocity = new Three.Vector2(0, 0);
+		this.cameraGyro.yaw += this.mouseVelocity.x * 0.005 * -1;
+		this.cameraGyro.pitch += this.mouseVelocity.y * 0.005 * -1;
 
-			// const cameraDegreesX: number = Util.toDegree(
-			// 	this.perspectiveCamera.rotation.x,
-			// );
-			// if (cameraDegreesX > 125) {
-			// 	this.perspectiveCamera.rotation.set(
-			// 		Util.toRadian(125),
-			// 		this.perspectiveCamera.rotation.y,
-			// 		this.perspectiveCamera.rotation.z,
-			// 	);
-			// }
-		}
+		this.cameraGyro.pitch = Three.MathUtils.clamp(
+			this.cameraGyro.pitch,
+			Three.MathUtils.degToRad(-80),
+			Three.MathUtils.degToRad(75),
+		);
+
+		const quaternionYaw: Three.Quaternion =
+			new Three.Quaternion().setFromAxisAngle(
+				new Three.Vector3(0, 1, 0),
+				this.cameraGyro.yaw,
+			);
+
+		const quaternionPitch: Three.Quaternion =
+			new Three.Quaternion().setFromAxisAngle(
+				new Three.Vector3(1, 0, 0),
+				this.cameraGyro.pitch,
+			);
+
+		this.mouseVelocity = new Three.Vector2(0, 0);
+		this.perspectiveCamera.quaternion
+			.copy(this.baseQuaternion.clone())
+			.multiply(quaternionYaw)
+			.multiply(quaternionPitch);
+
+		this.flySpeed = Three.MathUtils.lerp(
+			this.flySpeed,
+			KeyManager.isActionPressed("sprint") ? 100 : 10,
+			0.1,
+		);
+
 		const movementVector: Three.Vector3 = new Three.Vector3(0, 0, 0);
 		if (KeyManager.isActionPressed("moveForward")) {
-			movementVector.add(
-				new Three.Vector3(0, 0, -0.01 * this.flySpeed * gameTime),
-			);
+			movementVector.add(new Three.Vector3(0, 0, -0.01));
 		}
 		if (KeyManager.isActionPressed("moveBackward")) {
-			movementVector.add(
-				new Three.Vector3(0, 0, 0.01 * this.flySpeed * gameTime),
-			);
+			movementVector.add(new Three.Vector3(0, 0, 0.01));
 		}
 		if (KeyManager.isActionPressed("moveRight")) {
-			movementVector.add(
-				new Three.Vector3(0.01 * this.flySpeed * gameTime, 0, 0),
-			);
+			movementVector.add(new Three.Vector3(0.01, 0, 0));
 		}
 		if (KeyManager.isActionPressed("moveLeft")) {
-			movementVector.add(
-				new Three.Vector3(-0.01 * this.flySpeed * gameTime, 0, 0),
-			);
+			movementVector.add(new Three.Vector3(-0.01, 0, 0));
 		}
 		movementVector.applyQuaternion(this.perspectiveCamera.quaternion);
 		if (movementVector.length() > 0) movementVector.normalize();
+		movementVector.multiply(
+			new Three.Vector3(
+				this.flySpeed * gameTime,
+				this.flySpeed * gameTime,
+				this.flySpeed * gameTime,
+			),
+		);
 		this.perspectiveCamera.position.add(movementVector);
+
+		// zoom in functionality
+		this.perspectiveCamera.fov = Three.MathUtils.lerp(
+			this.perspectiveCamera.fov,
+			KeyManager.isActionPressed("zoom")
+				? this.fieldOfView - 50
+				: this.fieldOfView,
+			0.3,
+		);
+		this.perspectiveCamera.updateProjectionMatrix();
+	}
+
+	public getPosition(): Three.Vector3 {
+		this.notConstructedCheck();
+		return this.perspectiveCamera.position;
+	}
+
+	/**
+	 * returns the yaw and pitch from the user
+	 * input
+	 * */
+	public getAxis(): CameraAxis {
+		this.notConstructedCheck();
+		return this.cameraGyro;
+	}
+
+	public getRotation(): Three.Vector3 {
+		this.notConstructedCheck();
+		return new Three.Vector3(
+			this.perspectiveCamera.rotation.x,
+			this.perspectiveCamera.rotation.y,
+			this.perspectiveCamera.rotation.z,
+		);
 	}
 
 	public get(): Three.PerspectiveCamera {
-		if (!this.isConstructed)
-			throw new SyntaxError(
-				`model is not constructed. Please call .end() to finish it`,
-			);
+		this.notConstructedCheck();
 		return this.perspectiveCamera;
 	}
 }

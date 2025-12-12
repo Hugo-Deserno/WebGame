@@ -39,11 +39,22 @@ export class StaticCamera extends BaseModel implements Model {
 		return this;
 	}
 
+	public getPosition(): Three.Vector3 {
+		this.notConstructedCheck();
+		return this.perspectiveCamera.position;
+	}
+
+	public getRotation(): Three.Vector3 {
+		this.notConstructedCheck();
+		return new Three.Vector3(
+			this.perspectiveCamera.rotation.x,
+			this.perspectiveCamera.rotation.y,
+			this.perspectiveCamera.rotation.z,
+		);
+	}
+
 	public get(): Three.PerspectiveCamera {
-		if (!this.isConstructed)
-			throw new SyntaxError(
-				`model is not constructed. Please call .end() to finish it`,
-			);
+		this.notConstructedCheck();
 		return this.perspectiveCamera;
 	}
 }
