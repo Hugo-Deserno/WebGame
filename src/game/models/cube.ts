@@ -51,7 +51,7 @@ export class Cube extends BaseModel implements Model {
 		return this;
 	}
 
-	public update(gameTime: number): void {
+	public update(): void {
 		if (!this.isConstructed)
 			throw new SyntaxError(
 				`model is not constructed. Please call .end() to finish it`,

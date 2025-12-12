@@ -7,6 +7,7 @@ import type { CameraAxis } from "../../types/cameraAxis.type";
 export class FreeCamera extends BaseModel implements Model {
 	private readonly perspectiveCamera: Three.PerspectiveCamera;
 
+	private isMouseDown: boolean;
 	private mouseVelocity: Three.Vector2;
 	private fieldOfView: number;
 	private cameraGyro: CameraAxis;
@@ -29,7 +30,16 @@ export class FreeCamera extends BaseModel implements Model {
 		this.mouseVelocity = new Three.Vector2(0, 0);
 		this.fieldOfView = fieldOfView;
 		this.baseQuaternion = this.perspectiveCamera.quaternion.clone();
+		this.isMouseDown = false;
 
+		window.addEventListener("mousedown", (event: MouseEvent) => {
+			if (event.button !== 2) return;
+			this.isMouseDown = true;
+		});
+		window.addEventListener("mouseup", (event: MouseEvent) => {
+			if (event.button !== 2) return;
+			this.isMouseDown = false;
+		});
 		window.addEventListener("mousemove", (event: MouseEvent) => {
 			this.mouseVelocity.set(event.movementX, event.movementY);
 		});
@@ -70,14 +80,16 @@ export class FreeCamera extends BaseModel implements Model {
 	}
 
 	public update(gameTime: number): void {
-		this.cameraGyro.yaw += this.mouseVelocity.x * 0.005 * -1;
-		this.cameraGyro.pitch += this.mouseVelocity.y * 0.005 * -1;
+		if (this.isMouseDown) {
+			this.cameraGyro.yaw += this.mouseVelocity.x * 0.005 * -1;
+			this.cameraGyro.pitch += this.mouseVelocity.y * 0.005 * -1;
 
-		this.cameraGyro.pitch = Three.MathUtils.clamp(
-			this.cameraGyro.pitch,
-			Three.MathUtils.degToRad(-80),
-			Three.MathUtils.degToRad(75),
-		);
+			this.cameraGyro.pitch = Three.MathUtils.clamp(
+				this.cameraGyro.pitch,
+				Three.MathUtils.degToRad(-80),
+				Three.MathUtils.degToRad(75),
+			);
+		}
 
 		const quaternionYaw: Three.Quaternion =
 			new Three.Quaternion().setFromAxisAngle(
