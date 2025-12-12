@@ -40,6 +40,8 @@ export class PointLight extends BaseModel implements Model {
 			resolution ? resolution : new Three.Vector2(1024, 1024),
 		);
 		this.pointLight.shadow.bias = -0.0005;
+		this.pointLight.shadow.camera.near = 0.5;
+		this.pointLight.shadow.camera.far = this.pointLight.distance;
 
 		this.pointLight.shadow.radius = gameConfigurations.shadowSoftness;
 		GameConfigurations.observeConfiguration(
@@ -65,6 +67,7 @@ export class PointLight extends BaseModel implements Model {
 	public addDistance(distance: number): PointLight {
 		this.constructredCheck();
 		this.pointLight.distance = distance;
+		this.pointLight.shadow.camera.far = this.pointLight.distance;
 		return this;
 	}
 
@@ -85,6 +88,7 @@ export class PointLight extends BaseModel implements Model {
 		this.pointLightHelper.visible = true;
 		if (color) {
 			this.pointLightHelper.color = color;
+			this.pointLightHelper.update();
 		}
 		return this;
 	}

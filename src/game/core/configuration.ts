@@ -34,7 +34,7 @@ export class GameConfigurations {
 			fieldOfView: 70,
 			antiAlias: true,
 			shadows: true,
-			shadowSoftness: 2,
+			shadowSoftness: 1,
 		};
 		GameConfigurations.configurationSignals = new Map<
 			(State: unknown) => void,
