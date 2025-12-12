@@ -20,7 +20,14 @@ export class Cube extends BaseModel implements Model {
 		return this;
 	}
 
-	public AddPosition(position: Three.Vector3): Cube {
+	public addShadow(): Cube {
+		this.constructredCheck();
+		this.boxMesh.receiveShadow = true;
+		this.boxMesh.castShadow = true;
+		return this;
+	}
+
+	public addPosition(position: Three.Vector3): Cube {
 		this.constructredCheck();
 		this.boxMesh.position.set(position.x, position.y, position.z);
 		return this;

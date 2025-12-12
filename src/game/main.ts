@@ -3,6 +3,10 @@ import { MainScene } from "./scenes/mainScene";
 import { LooseCache } from "./common/cache";
 import Three from "./threeSingleton";
 
+type RunOptions = Partial<{
+	disableShadows: boolean;
+}>;
+
 export class GameCore {
 	private getRunner: () => boolean;
 	private setRunner: (state: boolean) => void;
@@ -50,7 +54,7 @@ export class GameCore {
 	 *
 	 * @param canvasElement The element to which the game will be attached to
 	 * */
-	public run(canvasElement: HTMLCanvasElement): void {
+	public run(canvasElement: HTMLCanvasElement, options?: RunOptions): void {
 		const isRunning: boolean = this.getRunner();
 		if (isRunning) throw new Error(`Game Instance is already running`);
 
@@ -66,6 +70,10 @@ export class GameCore {
 			canvas: canvasElement,
 		});
 		webGLRenderer.setSize(window.innerWidth, window.innerHeight);
+		if (!options || (options && !options.disableShadows)) {
+			webGLRenderer.shadowMap.enabled = true;
+			webGLRenderer.shadowMap.type = Three.PCFSoftShadowMap;
+		}
 		window.addEventListener("resize", () => {
 			webGLRenderer.setSize(window.innerWidth, window.innerHeight);
 		});

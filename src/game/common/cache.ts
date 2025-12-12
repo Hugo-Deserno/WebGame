@@ -41,10 +41,6 @@ export class Cache<T> {
  * Like Models or scenes
  * */
 export class DynamicCache<T> extends Cache<T> {
-	constructor(cacheName: string) {
-		super(cacheName);
-	}
-
 	/**
 	 * Gets a object from the cache with the type given in the generic
 	 *
@@ -64,11 +60,7 @@ export class DynamicCache<T> extends Cache<T> {
 /**
  * A cache that excepts any types as storage
  * */
-export class LooseCache extends Cache<any> {
-	constructor(cacheName: string) {
-		super(cacheName);
-	}
-
+export class LooseCache extends Cache<unknown> {
 	/**
 	 * Gets a object from the cache with the type given in the generic
 	 *
@@ -80,7 +72,7 @@ export class LooseCache extends Cache<any> {
 			throw new RangeError(
 				`${key} isn't a valid key inside cache ${this.cacheName}`,
 			);
-		const object: any = this.cacheMap.get(key);
+		const object: unknown = this.cacheMap.get(key);
 		return object as D;
 	}
 }

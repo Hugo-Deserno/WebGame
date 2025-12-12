@@ -18,6 +18,13 @@ export class PointLight extends BaseModel implements Model {
 		);
 	}
 
+	public addShadow(resolution?: Three.Vector2): PointLight {
+		this.constructredCheck();
+		this.pointLight.castShadow = true;
+		if (resolution) this.pointLight.shadow.mapSize.copy(resolution);
+		return this;
+	}
+
 	public addPosition(position: Three.Vector3): PointLight {
 		this.constructredCheck();
 		this.pointLight.position.copy(position);

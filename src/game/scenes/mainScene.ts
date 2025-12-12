@@ -58,19 +58,22 @@ export class MainScene implements Scene {
 	public loadContents(): void {
 		const boxMesh: Cube = new Cube(new Three.Vector3(3, 3, 3))
 			.addPhongMaterial(new Three.MeshPhongMaterial({ color: 0xffffff }))
+			.addShadow()
 			.end();
 		boxMesh.add(this.sceneInstance);
 		this.modelCache.set("cube", boxMesh);
 
 		const pointLight: PointLight = new PointLight()
-			.addPosition(new Three.Vector3(0, 5, 5))
-			.addDistance(15)
-			.addIntensity(2)
+			.addPosition(new Three.Vector3(0, 10, 5))
+			.addDistance(20)
+			.addShadow(new Three.Vector2(2000, 2000))
+			.addIntensity(5)
 			.end();
 		pointLight.add(this.sceneInstance);
 
 		const floorMesh: Cube = new Cube(new Three.Vector3(10, 1, 10))
-			.AddPosition(new Three.Vector3(0, -5, 0))
+			.addPosition(new Three.Vector3(0, -5, 0))
+			.addShadow()
 			.addPhongMaterial(new Three.MeshPhongMaterial({ color: 0xffffff }))
 			.end();
 		floorMesh.add(this.sceneInstance);
