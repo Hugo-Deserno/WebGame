@@ -79,9 +79,9 @@ export class FreeCamera extends BaseModel implements Model {
 		return this;
 	}
 
-	public addRotation(rotation: Three.Vector3): FreeCamera {
+	public addRotation(rotation: Three.Euler): FreeCamera {
 		this.constructredCheck();
-		this.perspectiveCamera.rotation.set(rotation.x, rotation.y, rotation.z);
+		this.perspectiveCamera.rotation.copy(rotation.clone());
 		this.baseQuaternion = this.perspectiveCamera.quaternion.clone();
 		return this;
 	}
@@ -181,13 +181,9 @@ export class FreeCamera extends BaseModel implements Model {
 		return this.cameraGyro;
 	}
 
-	public getRotation(): Three.Vector3 {
+	public getRotation(): Three.Euler {
 		this.notConstructedCheck();
-		return new Three.Vector3(
-			this.perspectiveCamera.rotation.x,
-			this.perspectiveCamera.rotation.y,
-			this.perspectiveCamera.rotation.z,
-		);
+		return this.perspectiveCamera.rotation;
 	}
 
 	public get(): Three.PerspectiveCamera {

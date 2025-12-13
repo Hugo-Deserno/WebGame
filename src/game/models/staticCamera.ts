@@ -31,9 +31,14 @@ export class StaticCamera extends BaseModel implements Model {
 		return this;
 	}
 
-	public addRotation(rotation: Three.Vector3): StaticCamera {
+	public addRotation(rotation: Three.Euler): StaticCamera {
 		this.constructredCheck();
-		this.perspectiveCamera.rotation.set(rotation.x, rotation.y, rotation.z);
+		this.perspectiveCamera.rotation.set(
+			rotation.x,
+			rotation.y,
+			rotation.z,
+			rotation.order,
+		);
 		return this;
 	}
 
@@ -48,13 +53,9 @@ export class StaticCamera extends BaseModel implements Model {
 		return this.perspectiveCamera.position;
 	}
 
-	public getRotation(): Three.Vector3 {
+	public getRotation(): Three.Euler {
 		this.notConstructedCheck();
-		return new Three.Vector3(
-			this.perspectiveCamera.rotation.x,
-			this.perspectiveCamera.rotation.y,
-			this.perspectiveCamera.rotation.z,
-		);
+		return this.perspectiveCamera.rotation;
 	}
 
 	public get(): Three.PerspectiveCamera {

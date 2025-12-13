@@ -6,7 +6,6 @@ import * as Three from "three";
 import * as Rapier from "@dimforge/rapier3d";
 import { FreeCamera } from "../models/freeCamera";
 import { StaticCamera } from "../models/staticCamera";
-import type { CameraAxis } from "../../types/cameraAxis.type";
 import { PointLight } from "../models/pointLight";
 import { AmbientLight } from "../models/ambientLight";
 import { DirectionalLight } from "../models/directionalLight";
@@ -15,6 +14,7 @@ import {
 	type GameConfigurationsConfig,
 } from "../core/configuration";
 import { Player } from "../models/player";
+import { Util } from "../util";
 
 type Cameras = FreeCamera | StaticCamera | Player;
 
@@ -22,11 +22,6 @@ export class MainScene implements Scene {
 	private readonly sceneInstance: Three.Scene;
 	private readonly rapierWorld: Rapier.World;
 	private readonly modelCache: DynamicCache<Model>;
-
-	private cameraAxis: CameraAxis = {
-		yaw: 0,
-		pitch: 0,
-	};
 
 	constructor() {
 		const gameConfigurations: GameConfigurationsConfig =
@@ -49,26 +44,42 @@ export class MainScene implements Scene {
 			if (!isFreeCameraEnabled) {
 				const player: Player = this.modelCache.get<Player>("camera");
 
+				console.log(player.getAxis(), player.getRotation());
 				const freeCamera: FreeCamera = new FreeCamera(
 					gameConfigurations.fieldOfView,
 				)
 					.addPosition(player.getPosition())
-					.addAxis(this.cameraAxis)
+					.addAxis({ yaw: 0, pitch: player.getAxis().pitch })
+					.addRotation(player.getRotation())
 					.end();
 				this.modelCache.set("camera", freeCamera);
 				player.remove(this.sceneInstance);
 			} else {
 				const freeCamera: FreeCamera =
 					this.modelCache.get<FreeCamera>("camera");
-				this.cameraAxis = freeCamera.getAxis();
 
 				const camera: Player = new Player(
 					new Three.Vector2(3, 5),
 					gameConfigurations.fieldOfView,
 				)
 					.addPosition(freeCamera.getPosition())
-					.addRotation(freeCamera.getRotation())
+					.addAxis({
+						yaw: 0,
+						pitch: freeCamera.getAxis().pitch,
+					})
 					.addCollider(this.rapierWorld)
+					.addRotation(
+						new Three.Euler(
+							0,
+							Util.getAxisFromQuaternion(
+								new Three.Quaternion().setFromEuler(
+									freeCamera.getRotation(),
+								),
+								"yaw",
+							),
+							0,
+						),
+					)
 					.end();
 				this.modelCache.set("camera", camera);
 				freeCamera.remove(this.sceneInstance);
@@ -88,7 +99,7 @@ export class MainScene implements Scene {
 			.addShadow(50)
 			.addHelper(new Three.Color(0x000000))
 			.addPosition(new Three.Vector3(10, 10, 10))
-			.addRotation(new Three.Vector3(10, 45, 0))
+			.addRotation(new Three.Euler(0.1, 0.78, 0))
 			.end();
 		directionalLight.add(this.sceneInstance);
 

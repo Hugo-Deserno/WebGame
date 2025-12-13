@@ -64,21 +64,14 @@ export class DirectionalLight extends BaseModel implements Model {
 		return this;
 	}
 
-	public addRotation(rotation: Three.Vector3): DirectionalLight {
+	public addRotation(rotation: Three.Euler): DirectionalLight {
 		this.constructredCheck();
 
 		const lightDirection: Three.Vector3 = new Three.Vector3(
 			0,
 			-1,
 			0,
-		).applyEuler(
-			new Three.Euler(
-				Three.MathUtils.degToRad(rotation.x),
-				Three.MathUtils.degToRad(rotation.y),
-				Three.MathUtils.degToRad(rotation.z),
-				"YXZ",
-			),
-		);
+		).applyEuler(rotation.clone());
 
 		this.directionalLight.target.position.copy(
 			this.directionalLight.position.clone().add(lightDirection),
