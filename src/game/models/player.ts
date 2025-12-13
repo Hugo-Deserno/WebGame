@@ -9,7 +9,7 @@ import Three from "../core/threeSingleton";
 import { Util } from "../util";
 import { BaseModel } from "./baseModel";
 
-const WALK_SPEED: number = 16;
+const WALK_SPEED: number = 1.6;
 
 export class Player extends BaseModel implements Model {
 	private readonly playerGeom: Three.CapsuleGeometry;
