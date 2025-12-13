@@ -5,9 +5,8 @@ import { BaseModel } from "./baseModel";
 export class AmbientLight extends BaseModel implements Model {
 	private readonly ambientLight: Three.AmbientLight;
 
-	constructor(intensity?: number) {
+	constructor(intensity: number = 1) {
 		super();
-		if (!intensity) intensity = 1;
 		this.ambientLight = new Three.AmbientLight(0xffffff, intensity);
 	}
 

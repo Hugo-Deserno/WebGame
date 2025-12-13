@@ -10,9 +10,8 @@ export class DirectionalLight extends BaseModel implements Model {
 	private readonly directionalLight: Three.DirectionalLight;
 	private readonly directionalLightHelper: Three.DirectionalLightHelper;
 
-	constructor(intensity: number) {
+	constructor(intensity: number = 1) {
 		super();
-		if (!intensity) intensity = 1;
 		this.directionalLight = new Three.DirectionalLight(0xffffff, intensity);
 		this.directionalLightHelper = new Three.DirectionalLightHelper(
 			this.directionalLight,
@@ -35,14 +34,13 @@ export class DirectionalLight extends BaseModel implements Model {
 		this.directionalLight.shadow.mapSize.copy(
 			resolution ? resolution : new Three.Vector2(1024, 1024),
 		);
-		this.directionalLight.shadow.bias = -0.0005;
 		this.directionalLight.shadow.camera.left = -shadowRange;
 		this.directionalLight.shadow.camera.right = shadowRange;
 		this.directionalLight.shadow.camera.top = shadowRange;
 		this.directionalLight.shadow.camera.bottom = -shadowRange;
 		this.directionalLight.shadow.camera.near = 0.5;
 		this.directionalLight.shadow.camera.far = shadowRange;
-
+		this.directionalLight.shadow.bias = 0.0001;
 		this.directionalLight.shadow.radius = gameConfigurations.shadowSoftness;
 		GameConfigurations.observeConfiguration(
 			"shadowSoftness",

@@ -131,4 +131,24 @@ export class Util {
 				throw new Error(`Invalid axis: ${axis}`);
 		}
 	}
+
+	/**
+	 * Converts one location in a number range to another number range
+	 *
+	 * @param a1 range 1 min
+	 * @param a2 range 1 max
+	 * @param b1 range 2 min
+	 * @param b2 range 2 max
+	 * @param the target of the first number range that should be given in range 2
+	 * @return the point of space in range 2 from range 1
+	 * */
+	public static MapRange(
+		a1: number,
+		a2: number,
+		b1: number,
+		b2: number,
+		s: number,
+	) {
+		return b1 + ((s - a1) * (b2 - b1)) / (a2 - a1);
+	}
 }

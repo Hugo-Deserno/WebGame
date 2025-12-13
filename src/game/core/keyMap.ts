@@ -10,4 +10,5 @@ export const KEY_MAP = {
 	moveLeft: ["a", "arrowleft"],
 	zoom: ["z"],
 	sprint: ["shift"],
+	jump: [" "], // spacebar
 };

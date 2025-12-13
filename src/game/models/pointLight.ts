@@ -10,11 +10,12 @@ export class PointLight extends BaseModel implements Model {
 	private readonly pointLight: Three.PointLight;
 	private readonly pointLightHelper: Three.PointLightHelper;
 
-	constructor(intensity?: number, distance?: number, decay?: number) {
+	constructor(
+		intensity: number = 3,
+		distance: number = 100,
+		decay: number = 2,
+	) {
 		super();
-		if (!intensity) intensity = 1;
-		if (!distance) distance = 100;
-		if (!decay) distance = 2;
 		this.pointLight = new Three.PointLight(
 			0xffffff,
 			intensity,

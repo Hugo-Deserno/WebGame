@@ -4,6 +4,8 @@ export type GameConfigurationsConfig = {
 	shadowSoftness: number; // range between 0 and 10
 	antiAlias: boolean;
 	gravity: number;
+	playerCollisionGroup: number;
+	worldCollisionGroup: number;
 };
 
 // Singleton Game configuration class
@@ -36,7 +38,9 @@ export class GameConfigurations {
 			antiAlias: true,
 			shadows: true,
 			shadowSoftness: 2,
-			gravity: -125,
+			gravity: -30,
+			playerCollisionGroup: 0b0001,
+			worldCollisionGroup: 0b0010,
 		};
 		GameConfigurations.configurationSignals = new Map<
 			(State: unknown) => void,

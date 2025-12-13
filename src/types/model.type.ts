@@ -14,7 +14,7 @@ export type Model = {
 	 * Updates the model and preforms changes
 	 * @see works after building
 	 * */
-	update?: (gameTime: number) => void;
+	update?: (gameTime: number, ...args: any[]) => void;
 	/**
 	 * ends the builder and signals it's ready for production
 	 * */

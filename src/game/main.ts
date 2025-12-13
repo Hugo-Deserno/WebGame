@@ -21,9 +21,9 @@ export class GameCore {
 		window.addEventListener("contextmenu", (event: PointerEvent) =>
 			event.preventDefault(),
 		);
-		window.addEventListener("mousedown", (event: MouseEvent) => {
-			if (event.button !== 2 || GameCore.canvasElement === null) return;
-			GameCore.canvasElement.requestPointerLock();
+		canvas.addEventListener("click", () => {
+			if (document.pointerLockElement === canvas) return;
+			canvas.requestPointerLock();
 		});
 	}
 

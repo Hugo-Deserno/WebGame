@@ -44,7 +44,6 @@ export class MainScene implements Scene {
 			if (!isFreeCameraEnabled) {
 				const player: Player = this.modelCache.get<Player>("camera");
 
-				console.log(player.getAxis(), player.getRotation());
 				const freeCamera: FreeCamera = new FreeCamera(
 					gameConfigurations.fieldOfView,
 				)
@@ -92,14 +91,14 @@ export class MainScene implements Scene {
 		const gameConfigurations: GameConfigurationsConfig =
 			GameConfigurations.getConfigurations();
 
-		const ambientLight: AmbientLight = new AmbientLight(1).end();
+		const ambientLight: AmbientLight = new AmbientLight().end();
 		ambientLight.add(this.sceneInstance);
 
-		const directionalLight: DirectionalLight = new DirectionalLight(4)
+		const directionalLight: DirectionalLight = new DirectionalLight(1)
 			.addShadow(500, new Three.Vector2(12000, 12000))
 			.addHelper(new Three.Color(0x000000))
 			.addPosition(new Three.Vector3(10, 10, 10))
-			.addRotation(new Three.Euler(0.5, 0.78, 0))
+			.addRotation(new Three.Euler(0.1, 0.78, 0))
 			.end();
 		directionalLight.add(this.sceneInstance);
 
@@ -112,7 +111,7 @@ export class MainScene implements Scene {
 			.end();
 		this.modelCache.set("camera", player);
 
-		for (let i = 0; i < 1000; i++) {
+		for (let i = 0; i < 100; i++) {
 			const boxMesh: Cube = new Cube(new Three.Vector3(3, 3, 3))
 				.addPhongMaterial(
 					new Three.MeshPhongMaterial({ color: 0xffffff }),
@@ -124,6 +123,15 @@ export class MainScene implements Scene {
 			boxMesh.add(this.sceneInstance);
 			this.modelCache.set(`cube${i}`, boxMesh);
 		}
+
+		const boxMesh: Cube = new Cube(new Three.Vector3(20, 50, 3))
+			.addPhongMaterial(new Three.MeshPhongMaterial({ color: 0xffffff }))
+			.addShadow()
+			.addPosition(new Three.Vector3(10, 5, 0))
+			.addRotation(new Three.Euler(0.78, 0, 0))
+			.addCollider("passive", this.rapierWorld)
+			.end();
+		boxMesh.add(this.sceneInstance);
 
 		const floorMesh: Cube = new Cube(new Three.Vector3(2000, 1, 2000))
 			.addPosition(new Three.Vector3(0, -5, 0))
@@ -150,14 +158,14 @@ export class MainScene implements Scene {
 	public update(gameTime: number): void {
 		this.rapierWorld.step();
 
-		for (let i = 0; i < 1000; i++) {
+		for (let i = 0; i < 100; i++) {
 			this.modelCache.get<Cube>(`cube${i}`).update();
 		}
 		this.modelCache.get<Cube>("floor").update();
 
 		const camera: Cameras = this.modelCache.get<Cameras>("camera");
-		if (camera instanceof FreeCamera || camera instanceof Player)
-			camera.update(gameTime);
+		if (camera instanceof FreeCamera) camera.update(gameTime);
+		if (camera instanceof Player) camera.update(gameTime, this.rapierWorld);
 	}
 
 	public render(renderer: Three.WebGLRenderer): void {

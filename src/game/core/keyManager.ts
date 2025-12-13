@@ -75,7 +75,7 @@ export class KeyManager {
 	 * @param action the action which will fire the function
 	 * @param fn the function that will be fired when the action triggers
 	 * */
-	public static onPressKey(action: Actions, fn: () => void): void {
+	public static observeKey(action: Actions, fn: () => void): void {
 		this.keyRoamer(action);
 		this.observers.add([action, fn]);
 	}
@@ -103,5 +103,18 @@ export class KeyManager {
 	public static getKeysFromAction(action: Actions): Array<string> {
 		this.keyRoamer(action);
 		return KEY_MAP[action];
+	}
+
+	/**
+	 * Removes a set observer
+	 *
+	 * @param action the action which's observer will be unbound
+	 * @param the function which will be unbound
+	 * */
+	public static removeObserver(action: Actions, fn: () => void): void {
+		this.observers.forEach((pair: ObserverPair) => {
+			if (pair[0] !== action || pair[1] !== fn) return;
+			this.observers.delete(pair);
+		});
 	}
 }

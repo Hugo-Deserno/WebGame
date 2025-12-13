@@ -7,6 +7,8 @@ import { Util } from "../util";
 import { BaseModel } from "./baseModel";
 
 const WALK_SPEED: number = 16;
+const MAX_SPEED: number = 200;
+const ACCELERATION: number = 0.2;
 
 export class Player extends BaseModel implements Model {
 	private readonly playerGeom: Three.CapsuleGeometry;
@@ -15,13 +17,17 @@ export class Player extends BaseModel implements Model {
 
 	private readonly resizeWindow: () => void;
 	private readonly mouseMove: (event: MouseEvent) => void;
+	private readonly onJump: () => void;
 
 	private rigidBody?: Rapier.RigidBody;
 	private collider?: Rapier.Collider;
 
 	private cameraGyro: CameraAxis;
+	private playerSpeed: number;
 	private mouseVelocity: Three.Vector2;
 	private baseQuaternion: Three.Quaternion;
+	private isTouchingGround: boolean;
+	private isUserJump: boolean;
 
 	constructor(startSize: Three.Vector2, fieldOfView: number) {
 		super();
@@ -48,6 +54,9 @@ export class Player extends BaseModel implements Model {
 		};
 		this.baseQuaternion = this.playerCamera.quaternion.clone();
 		this.mouseVelocity = new Three.Vector2(0, 0);
+		this.playerSpeed = WALK_SPEED;
+		this.isTouchingGround = false;
+		this.isUserJump = false;
 
 		this.mouseMove = (event: MouseEvent) => {
 			this.mouseVelocity.set(event.movementX, event.movementY);
@@ -56,7 +65,27 @@ export class Player extends BaseModel implements Model {
 			this.playerCamera.aspect = window.innerWidth / window.innerHeight;
 			this.playerCamera.updateProjectionMatrix();
 		};
+		this.onJump = () => {
+			if (!this.rigidBody || !this.isTouchingGround) return;
+			this.isUserJump = true;
+			this.rigidBody.applyImpulse(
+				new Rapier.Vector3(
+					0,
+					10000 *
+						Util.MapRange(
+							WALK_SPEED,
+							MAX_SPEED,
+							0.5,
+							1,
+							this.playerSpeed,
+						),
+					0,
+				),
+				true,
+			);
+		};
 
+		KeyManager.observeKey("jump", this.onJump);
 		window.addEventListener("resize", this.resizeWindow);
 		window.addEventListener("mousemove", this.mouseMove);
 		return this;
@@ -158,7 +187,49 @@ export class Player extends BaseModel implements Model {
 		return this.cameraGyro;
 	}
 
-	public update(gameTime: number): void {
+	public update(gameTime: number, world: Rapier.World): void {
+		let bunnyHop: Function = () => {
+			if (!this.collider || !this.rigidBody) return;
+
+			const rayOrigin: Rapier.Vector3 = this.rigidBody.translation();
+			rayOrigin.y -=
+				this.playerGeom.parameters.height * 0.5 +
+				this.playerGeom.parameters.radius -
+				0.02;
+
+			const groundCheckRay: Rapier.Ray = new Rapier.Ray(
+				rayOrigin,
+				new Rapier.Vector3(0, -1, 0),
+			);
+
+			const hitCheck: Rapier.RayColliderHit | null = world.castRay(
+				groundCheckRay,
+				0.15,
+				true,
+				undefined,
+				undefined,
+				this.collider,
+			);
+			if (hitCheck) {
+				this.playerSpeed = Three.MathUtils.clamp(
+					this.playerSpeed / 1.01,
+					WALK_SPEED,
+					MAX_SPEED,
+				);
+				this.isTouchingGround = true;
+				this.isUserJump = false;
+				return;
+			}
+			if (!this.isUserJump) return; // prevent regular falling from speeding up player
+
+			this.playerSpeed = Three.MathUtils.clamp(
+				this.playerSpeed + ACCELERATION,
+				WALK_SPEED,
+				MAX_SPEED,
+			);
+			this.isTouchingGround = false;
+		};
+
 		let updateCamera: Function = () => {
 			this.cameraGyro.yaw += this.mouseVelocity.x * 0.005 * -1;
 			this.cameraGyro.pitch += this.mouseVelocity.y * 0.005 * -1;
@@ -234,15 +305,17 @@ export class Player extends BaseModel implements Model {
 
 				const rigidBodyVelocity: Three.Vector3 =
 					Util.rapierVectorToThree(this.rigidBody.linvel());
-				movementVector.multiplyScalar(WALK_SPEED * gameTime * 100);
+				movementVector.multiplyScalar(
+					this.playerSpeed * gameTime * 100,
+				);
 				movementVector.add(
 					new Three.Vector3(0, rigidBodyVelocity.y, 0),
 				);
-
 				this.rigidBody.setLinvel(
 					Util.threeVectorToRapier(movementVector),
 					true,
 				);
+
 				this.playerMesh.position.copy(
 					Util.rapierVectorToThree(this.rigidBody.translation()),
 				);
@@ -250,8 +323,10 @@ export class Player extends BaseModel implements Model {
 			this.playerCamera.position.copy(this.playerMesh.position.clone());
 		};
 
+		bunnyHop = bunnyHop.bind(this);
 		updateCamera = updateCamera.bind(this);
 		updateColliders = updateColliders.bind(this);
+		bunnyHop();
 		updateCamera();
 		updateColliders();
 	}
@@ -273,6 +348,7 @@ export class Player extends BaseModel implements Model {
 			if (this.rigidBody) world.removeRigidBody(this.rigidBody);
 		}
 
+		KeyManager.removeObserver("jump", this.onJump);
 		window.removeEventListener("mousemove", this.mouseMove);
 		window.removeEventListener("resize", this.resizeWindow);
 	}

@@ -33,6 +33,17 @@ export class Cube extends BaseModel implements Model {
 		return this;
 	}
 
+	public addRotation(rotation: Three.Euler): Cube {
+		this.constructredCheck();
+		this.boxMesh.rotation.set(
+			rotation.x,
+			rotation.y,
+			rotation.z,
+			rotation.order,
+		);
+		return this;
+	}
+
 	public addPosition(position: Three.Vector3): Cube {
 		this.constructredCheck();
 		if (this.rigidBody) {
