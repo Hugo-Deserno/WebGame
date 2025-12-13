@@ -3,6 +3,7 @@ export type GameConfigurationsConfig = {
 	shadows: boolean;
 	shadowSoftness: number; // range between 0 and 10
 	antiAlias: boolean;
+	gravity: number;
 };
 
 // Singleton Game configuration class
@@ -34,7 +35,8 @@ export class GameConfigurations {
 			fieldOfView: 70,
 			antiAlias: true,
 			shadows: true,
-			shadowSoftness: 1,
+			shadowSoftness: 2,
+			gravity: -9.81,
 		};
 		GameConfigurations.configurationSignals = new Map<
 			(State: unknown) => void,

@@ -41,7 +41,7 @@ export class DirectionalLight extends BaseModel implements Model {
 		this.directionalLight.shadow.camera.top = shadowRange;
 		this.directionalLight.shadow.camera.bottom = -shadowRange;
 		this.directionalLight.shadow.camera.near = 0.5;
-		this.directionalLight.shadow.camera.far = shadowRange * 5;
+		this.directionalLight.shadow.camera.far = shadowRange;
 
 		this.directionalLight.shadow.radius = gameConfigurations.shadowSoftness;
 		GameConfigurations.observeConfiguration(

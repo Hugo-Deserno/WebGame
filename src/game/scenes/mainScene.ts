@@ -3,17 +3,23 @@ import { DynamicCache } from "../core/cache";
 import type { Model } from "../../types/model.type";
 import { Cube } from "../models/cube";
 import Three from "../threeSingleton";
+import Rapier from "../rapierSingleton";
 import { FreeCamera } from "../models/freeCamera";
 import { StaticCamera } from "../models/staticCamera";
 import type { CameraAxis } from "../../types/cameraAxis.type";
 import { PointLight } from "../models/pointLight";
 import { AmbientLight } from "../models/ambientLight";
 import { DirectionalLight } from "../models/directionalLight";
+import {
+	GameConfigurations,
+	type GameConfigurationsConfig,
+} from "../core/configuration";
 
 type Cameras = FreeCamera | StaticCamera;
 
 export class MainScene implements Scene {
 	private readonly sceneInstance: Three.Scene;
+	private readonly rapierWorld: Rapier.World;
 	private readonly modelCache: DynamicCache<Model>;
 
 	private cameraAxis: CameraAxis = {
@@ -22,9 +28,15 @@ export class MainScene implements Scene {
 	};
 
 	constructor() {
+		const gameConfigurations: GameConfigurationsConfig =
+			GameConfigurations.getConfigurations();
+
 		this.sceneInstance = new Three.Scene();
 		this.modelCache = new DynamicCache<Model>("modelCache");
-
+		this.rapierWorld = new Rapier.World(
+			new Rapier.Vector3(0, gameConfigurations.gravity, 0),
+		);
+		console.log(this.rapierWorld);
 		/**
 		 * When pressing shift + F
 		 * The user can switch between static cam and free camera

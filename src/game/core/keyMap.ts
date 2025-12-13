@@ -1,5 +1,5 @@
 /**
- * We make everything lowercase to shift + key doesn't
+ * We make everything lowercase so shift + key doesn't
  * screw everything up. Nor do i need to add multiple copies of the
  * same key
  * */
