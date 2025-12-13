@@ -10,6 +10,11 @@ const FLY_SPEED_FAST: number = 100;
 export class FreeCamera extends BaseModel implements Model {
 	private readonly perspectiveCamera: Three.PerspectiveCamera;
 
+	private readonly resizeWindow: () => void;
+	private readonly mouseDown: (event: MouseEvent) => void;
+	private readonly mouseUp: (event: MouseEvent) => void;
+	private readonly mouseMove: (event: MouseEvent) => void;
+
 	private isMouseDown: boolean;
 	private mouseVelocity: Three.Vector2;
 	private fieldOfView: number;
@@ -35,22 +40,27 @@ export class FreeCamera extends BaseModel implements Model {
 		this.isMouseDown = false;
 		this.flySpeed = FLY_SPEED_NORMAL;
 
-		window.addEventListener("mousedown", (event: MouseEvent) => {
-			if (event.button !== 2) return;
-			this.isMouseDown = true;
-		});
-		window.addEventListener("mouseup", (event: MouseEvent) => {
-			if (event.button !== 2) return;
-			this.isMouseDown = false;
-		});
-		window.addEventListener("mousemove", (event: MouseEvent) => {
-			this.mouseVelocity.set(event.movementX, event.movementY);
-		});
-		window.addEventListener("resize", () => {
+		this.resizeWindow = () => {
 			this.perspectiveCamera.aspect =
 				window.innerWidth / window.innerHeight;
 			this.perspectiveCamera.updateProjectionMatrix();
-		});
+		};
+		this.mouseDown = (event: MouseEvent) => {
+			if (event.button !== 2) return;
+			this.isMouseDown = true;
+		};
+		this.mouseUp = (event: MouseEvent) => {
+			if (event.button !== 2) return;
+			this.isMouseDown = false;
+		};
+		this.mouseMove = (event: MouseEvent) => {
+			this.mouseVelocity.set(event.movementX, event.movementY);
+		};
+
+		window.addEventListener("mousedown", this.mouseDown);
+		window.addEventListener("mouseup", this.mouseUp);
+		window.addEventListener("mousemove", this.mouseMove);
+		window.addEventListener("resize", this.resizeWindow);
 		return this;
 	}
 
@@ -183,5 +193,15 @@ export class FreeCamera extends BaseModel implements Model {
 	public get(): Three.PerspectiveCamera {
 		this.notConstructedCheck();
 		return this.perspectiveCamera;
+	}
+
+	public remove(scene?: Three.Scene): void {
+		this.notConstructedCheck();
+		this.isAlive = false;
+		window.removeEventListener("resize", this.resizeWindow);
+		window.removeEventListener("mousedown", this.mouseDown);
+		window.removeEventListener("mouseup", this.mouseUp);
+		window.removeEventListener("mousemove", this.mouseMove);
+		if (scene) scene.remove(this.perspectiveCamera);
 	}
 }

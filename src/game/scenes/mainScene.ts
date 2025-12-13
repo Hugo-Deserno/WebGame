@@ -36,7 +36,7 @@ export class MainScene implements Scene {
 		this.rapierWorld = new Rapier.World(
 			new Rapier.Vector3(0, gameConfigurations.gravity, 0),
 		);
-		console.log(this.rapierWorld);
+
 		/**
 		 * When pressing shift + F
 		 * The user can switch between static cam and free camera
@@ -54,6 +54,7 @@ export class MainScene implements Scene {
 					.addAxis(this.cameraAxis)
 					.end();
 				this.modelCache.set("camera", freeCamera);
+				staticCamera.remove(this.sceneInstance);
 			} else {
 				const freeCamera: FreeCamera =
 					this.modelCache.get<FreeCamera>("camera");
@@ -64,6 +65,7 @@ export class MainScene implements Scene {
 					.addRotation(freeCamera.getRotation())
 					.end();
 				this.modelCache.set("camera", camera);
+				freeCamera.remove(this.sceneInstance);
 			}
 			isFreeCameraEnabled = !isFreeCameraEnabled;
 		});
@@ -86,17 +88,27 @@ export class MainScene implements Scene {
 			.end();
 		this.modelCache.set("camera", camera);
 
-		const boxMesh: Cube = new Cube(new Three.Vector3(3, 3, 3))
-			.addPhongMaterial(new Three.MeshPhongMaterial({ color: 0xffffff }))
+		for (let i = 0; i < 1000; i++) {
+			const boxMesh: Cube = new Cube(new Three.Vector3(3, 3, 3))
+				.addPhongMaterial(
+					new Three.MeshPhongMaterial({ color: 0xffffff }),
+				)
+				.addShadow()
+				.addPosition(new Three.Vector3(i / 2, i * 3, 0))
+				.addCollider("active", this.rapierWorld)
+				.end();
+			boxMesh.add(this.sceneInstance);
+			this.modelCache.set(`cube${i}`, boxMesh);
+		}
+
+		const floorMesh: Cube = new Cube(new Three.Vector3(2000, 1, 2000))
+			.addPosition(new Three.Vector3(0, -5, 0))
 			.addShadow()
-			.end();
-		boxMesh.add(this.sceneInstance);
-		const boxMesh2: Cube = new Cube(new Three.Vector3(3, 3, 3))
+			.addCollider("passive", this.rapierWorld)
 			.addPhongMaterial(new Three.MeshPhongMaterial({ color: 0xffffff }))
-			.addShadow()
-			.addPosition(new Three.Vector3(5, 2, 5))
 			.end();
-		boxMesh2.add(this.sceneInstance);
+		floorMesh.add(this.sceneInstance);
+		this.modelCache.set("floor", floorMesh);
 
 		const pointLight: PointLight = new PointLight()
 			.addPosition(new Three.Vector3(0, 10, 10))
@@ -108,17 +120,17 @@ export class MainScene implements Scene {
 			.end();
 		pointLight.add(this.sceneInstance);
 
-		const floorMesh: Cube = new Cube(new Three.Vector3(30, 1, 30))
-			.addPosition(new Three.Vector3(0, -5, 0))
-			.addShadow()
-			.addPhongMaterial(new Three.MeshPhongMaterial({ color: 0xffffff }))
-			.end();
-		floorMesh.add(this.sceneInstance);
-
 		this.sceneInstance.background = new Three.Color(0xd4f6ff);
 	}
 
 	public update(gameTime: number): void {
+		this.rapierWorld.step();
+
+		for (let i = 0; i < 1000; i++) {
+			this.modelCache.get<Cube>(`cube${i}`).update();
+		}
+		this.modelCache.get<Cube>("floor").update();
+
 		const camera: Cameras = this.modelCache.get<Cameras>("camera");
 		if (camera instanceof FreeCamera) camera.update(gameTime);
 	}

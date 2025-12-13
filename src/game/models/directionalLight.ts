@@ -115,4 +115,10 @@ export class DirectionalLight extends BaseModel implements Model {
 		scene.add(this.directionalLight);
 		scene.add(this.directionalLightHelper);
 	}
+
+	public remove(scene?: Three.Scene): void {
+		this.notConstructedCheck();
+		this.isAlive = false;
+		if (scene) scene.remove(this.ambientLight);
+	}
 }

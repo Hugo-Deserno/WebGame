@@ -33,4 +33,10 @@ export class AmbientLight extends BaseModel implements Model {
 		this.notConstructedCheck();
 		scene.add(this.ambientLight);
 	}
+
+	public remove(scene?: Three.Scene): void {
+		this.notConstructedCheck();
+		this.isAlive = false;
+		if (scene) scene.remove(this.ambientLight);
+	}
 }

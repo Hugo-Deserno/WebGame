@@ -5,6 +5,8 @@ import { BaseModel } from "./baseModel";
 export class StaticCamera extends BaseModel implements Model {
 	private readonly perspectiveCamera: Three.PerspectiveCamera;
 
+	private readonly resizeWindow: () => void;
+
 	constructor(fieldOfView: number) {
 		super();
 		this.perspectiveCamera = new Three.PerspectiveCamera(
@@ -13,11 +15,13 @@ export class StaticCamera extends BaseModel implements Model {
 			0.1,
 			1000,
 		);
-		window.addEventListener("resize", () => {
+		this.resizeWindow = () => {
 			this.perspectiveCamera.aspect =
 				window.innerWidth / window.innerHeight;
 			this.perspectiveCamera.updateProjectionMatrix();
-		});
+		};
+
+		window.addEventListener("resize", this.resizeWindow);
 		return this;
 	}
 
@@ -56,5 +60,12 @@ export class StaticCamera extends BaseModel implements Model {
 	public get(): Three.PerspectiveCamera {
 		this.notConstructedCheck();
 		return this.perspectiveCamera;
+	}
+
+	public remove(scene?: Three.Scene): void {
+		this.notConstructedCheck();
+		this.isAlive = false;
+		window.removeEventListener("resize", this.resizeWindow);
+		if (scene) scene.remove(this.perspectiveCamera);
 	}
 }
