@@ -12,7 +12,7 @@ export class Player extends BaseModel implements Model {
 	private readonly resizeWindow: () => void;
 
 	private rigidBody?: Rapier.RigidBody;
-	private collider?: Rapier.Collider;
+	// private collider?: Rapier.Collider;
 
 	constructor(startSize: Three.Vector2, fieldOfView: number) {
 		super();
@@ -62,7 +62,7 @@ export class Player extends BaseModel implements Model {
 		return this;
 	}
 
-	public remove(scene?: Three.Scene, world?: Rapier.World): void {
+	public remove(scene?: Three.Scene): void {
 		this.notConstructedCheck();
 		this.isAlive = false;
 		if (scene) {
