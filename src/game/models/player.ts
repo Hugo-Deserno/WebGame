@@ -71,6 +71,31 @@ export class Player extends BaseModel implements Model {
 		return this;
 	}
 
+	public addPosition(position: Three.Vector3): Player {
+		this.constructredCheck();
+		if (this.rigidBody) {
+			this.rigidBody.setTranslation(
+				Util.threeVectorToRapier(position),
+				true,
+			);
+		} else {
+			this.playerMesh.position.copy(position);
+		}
+		return this;
+	}
+
+	public addRotation(rotation: Three.Euler): Player {
+		this.constructredCheck();
+		this.playerMesh.rotation.set(
+			rotation.x,
+			rotation.y,
+			rotation.z,
+			rotation.order,
+		);
+		this.baseQuaternion = this.playerMesh.quaternion.clone();
+		return this;
+	}
+
 	public addCollider(rapierWorld: Rapier.World): Player {
 		this.constructredCheck();
 
@@ -108,28 +133,9 @@ export class Player extends BaseModel implements Model {
 		return this;
 	}
 
-	public addPosition(position: Three.Vector3): Player {
+	public end(): Player {
 		this.constructredCheck();
-		if (this.rigidBody) {
-			this.rigidBody.setTranslation(
-				Util.threeVectorToRapier(position),
-				true,
-			);
-		} else {
-			this.playerMesh.position.copy(position);
-		}
-		return this;
-	}
-
-	public addRotation(rotation: Three.Euler): Player {
-		this.constructredCheck();
-		this.playerMesh.rotation.set(
-			rotation.x,
-			rotation.y,
-			rotation.z,
-			rotation.order,
-		);
-		this.baseQuaternion = this.playerMesh.quaternion.clone();
+		this.isConstructed = true;
 		return this;
 	}
 
@@ -152,95 +158,102 @@ export class Player extends BaseModel implements Model {
 		return this.cameraGyro;
 	}
 
-	public end(): Player {
-		this.constructredCheck();
-		this.isConstructed = true;
-		return this;
-	}
-
 	public update(gameTime: number): void {
-		this.cameraGyro.yaw += this.mouseVelocity.x * 0.005 * -1;
-		this.cameraGyro.pitch += this.mouseVelocity.y * 0.005 * -1;
+		let updateCamera: Function = () => {
+			this.cameraGyro.yaw += this.mouseVelocity.x * 0.005 * -1;
+			this.cameraGyro.pitch += this.mouseVelocity.y * 0.005 * -1;
 
-		this.cameraGyro.pitch = Three.MathUtils.clamp(
-			this.cameraGyro.pitch,
-			Three.MathUtils.degToRad(-80),
-			Three.MathUtils.degToRad(75),
-		);
-
-		const quaternionYaw: Three.Quaternion =
-			new Three.Quaternion().setFromAxisAngle(
-				new Three.Vector3(0, 1, 0),
-				this.cameraGyro.yaw,
-			);
-
-		const quaternionPitch: Three.Quaternion =
-			new Three.Quaternion().setFromAxisAngle(
-				new Three.Vector3(1, 0, 0),
+			this.cameraGyro.pitch = Three.MathUtils.clamp(
 				this.cameraGyro.pitch,
+				Three.MathUtils.degToRad(-80),
+				Three.MathUtils.degToRad(75),
 			);
 
-		this.mouseVelocity = new Three.Vector2(0, 0);
-		this.playerCamera.quaternion
-			.copy(this.baseQuaternion.clone())
-			.multiply(quaternionYaw)
-			.multiply(quaternionPitch);
+			const quaternionYaw: Three.Quaternion =
+				new Three.Quaternion().setFromAxisAngle(
+					new Three.Vector3(0, 1, 0),
+					this.cameraGyro.yaw,
+				);
 
-		// converts the camera into the playermesh
-		const playerCameraEuler: Three.Euler =
-			new Three.Euler().setFromQuaternion(
-				this.playerCamera.quaternion,
-				"YXZ",
-			);
-		playerCameraEuler.x = 0;
-		playerCameraEuler.z = 0;
-		this.playerMesh.quaternion.setFromEuler(playerCameraEuler);
+			const quaternionPitch: Three.Quaternion =
+				new Three.Quaternion().setFromAxisAngle(
+					new Three.Vector3(1, 0, 0),
+					this.cameraGyro.pitch,
+				);
 
-		// handles movement for the rigidbody
-		if (this.rigidBody) {
-			const movementQuaternion = new Three.Quaternion().setFromEuler(
-				new Three.Euler(
-					0,
-					Util.getAxisFromQuaternion(
-						this.playerMesh.quaternion,
-						"yaw",
-					),
-					0,
+			this.mouseVelocity = new Three.Vector2(0, 0);
+			this.playerCamera.quaternion
+				.copy(this.baseQuaternion.clone())
+				.multiply(quaternionYaw)
+				.multiply(quaternionPitch);
+
+			// converts the camera into the playermesh
+			const playerCameraEuler: Three.Euler =
+				new Three.Euler().setFromQuaternion(
+					this.playerCamera.quaternion,
 					"YXZ",
-				),
-			);
+				);
+			playerCameraEuler.x = 0;
+			playerCameraEuler.z = 0;
+			this.playerMesh.quaternion.setFromEuler(playerCameraEuler);
+		};
 
-			const movementVector: Three.Vector3 = new Three.Vector3(0, 0, 0);
-			if (KeyManager.isActionPressed("moveForward")) {
-				movementVector.add(new Three.Vector3(0, 0, -0.01));
-			}
-			if (KeyManager.isActionPressed("moveBackward")) {
-				movementVector.add(new Three.Vector3(0, 0, 0.01));
-			}
-			if (KeyManager.isActionPressed("moveRight")) {
-				movementVector.add(new Three.Vector3(0.01, 0, 0));
-			}
-			if (KeyManager.isActionPressed("moveLeft")) {
-				movementVector.add(new Three.Vector3(-0.01, 0, 0));
-			}
-			movementVector.applyQuaternion(movementQuaternion);
-			if (movementVector.length() > 0) movementVector.normalize();
+		let updateColliders: Function = () => {
+			if (this.rigidBody) {
+				const movementQuaternion = new Three.Quaternion().setFromEuler(
+					new Three.Euler(
+						0,
+						Util.getAxisFromQuaternion(
+							this.playerMesh.quaternion,
+							"yaw",
+						),
+						0,
+						"YXZ",
+					),
+				);
 
-			const rigidBodyVelocity: Three.Vector3 = Util.rapierVectorToThree(
-				this.rigidBody.linvel(),
-			);
-			movementVector.multiplyScalar(WALK_SPEED * gameTime * 100);
-			movementVector.add(new Three.Vector3(0, rigidBodyVelocity.y, 0));
+				const movementVector: Three.Vector3 = new Three.Vector3(
+					0,
+					0,
+					0,
+				);
+				if (KeyManager.isActionPressed("moveForward")) {
+					movementVector.add(new Three.Vector3(0, 0, -0.01));
+				}
+				if (KeyManager.isActionPressed("moveBackward")) {
+					movementVector.add(new Three.Vector3(0, 0, 0.01));
+				}
+				if (KeyManager.isActionPressed("moveRight")) {
+					movementVector.add(new Three.Vector3(0.01, 0, 0));
+				}
+				if (KeyManager.isActionPressed("moveLeft")) {
+					movementVector.add(new Three.Vector3(-0.01, 0, 0));
+				}
+				movementVector.applyQuaternion(movementQuaternion);
+				if (movementVector.length() > 0) movementVector.normalize();
 
-			this.rigidBody.setLinvel(
-				Util.threeVectorToRapier(movementVector),
-				true,
-			);
-			this.playerMesh.position.copy(
-				Util.rapierVectorToThree(this.rigidBody.translation()),
-			);
-		}
-		this.playerCamera.position.copy(this.playerMesh.position.clone());
+				const rigidBodyVelocity: Three.Vector3 =
+					Util.rapierVectorToThree(this.rigidBody.linvel());
+				movementVector.multiplyScalar(WALK_SPEED * gameTime * 100);
+				movementVector.add(
+					new Three.Vector3(0, rigidBodyVelocity.y, 0),
+				);
+
+				this.rigidBody.setLinvel(
+					Util.threeVectorToRapier(movementVector),
+					true,
+				);
+				this.playerMesh.position.copy(
+					Util.rapierVectorToThree(this.rigidBody.translation()),
+				);
+			}
+			this.playerCamera.position.copy(this.playerMesh.position.clone());
+		};
+
+		updateCamera = updateCamera.bind(this);
+		updateColliders = updateColliders.bind(this);
+		updateCamera();
+		updateColliders();
 	}
 
 	public get(): Three.PerspectiveCamera {

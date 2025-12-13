@@ -58,6 +58,17 @@ export class MainScene implements Scene {
 				const freeCamera: FreeCamera =
 					this.modelCache.get<FreeCamera>("camera");
 
+				const playerRotation: Three.Euler = new Three.Euler(
+					0,
+					Util.getAxisFromQuaternion(
+						new Three.Quaternion().setFromEuler(
+							freeCamera.getRotation(),
+						),
+						"yaw",
+					),
+					0,
+				);
+
 				const camera: Player = new Player(
 					new Three.Vector2(3, 5),
 					gameConfigurations.fieldOfView,
@@ -68,18 +79,7 @@ export class MainScene implements Scene {
 						pitch: freeCamera.getAxis().pitch,
 					})
 					.addCollider(this.rapierWorld)
-					.addRotation(
-						new Three.Euler(
-							0,
-							Util.getAxisFromQuaternion(
-								new Three.Quaternion().setFromEuler(
-									freeCamera.getRotation(),
-								),
-								"yaw",
-							),
-							0,
-						),
-					)
+					.addRotation(playerRotation)
 					.end();
 				this.modelCache.set("camera", camera);
 				freeCamera.remove(this.sceneInstance);
@@ -96,10 +96,10 @@ export class MainScene implements Scene {
 		ambientLight.add(this.sceneInstance);
 
 		const directionalLight: DirectionalLight = new DirectionalLight(4)
-			.addShadow(50)
+			.addShadow(500, new Three.Vector2(12000, 12000))
 			.addHelper(new Three.Color(0x000000))
 			.addPosition(new Three.Vector3(10, 10, 10))
-			.addRotation(new Three.Euler(0.1, 0.78, 0))
+			.addRotation(new Three.Euler(0.5, 0.78, 0))
 			.end();
 		directionalLight.add(this.sceneInstance);
 
