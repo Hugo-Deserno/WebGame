@@ -1,1 +1,1 @@
-export type colliderType = "active" | "passive";
+export type ColliderType = "active" | "passive" | "kinematic";

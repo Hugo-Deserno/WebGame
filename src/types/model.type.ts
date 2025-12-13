@@ -1,5 +1,5 @@
-import type Rapier from "../game/rapierSingleton";
-import type Three from "../game/threeSingleton";
+import type Rapier from "../game/core/rapierSingleton";
+import type Three from "../game/core/threeSingleton";
 
 export type Model = {
 	/**

@@ -2,8 +2,8 @@ import type { Scene } from "../../types/scene.type";
 import { DynamicCache } from "../core/cache";
 import type { Model } from "../../types/model.type";
 import { Cube } from "../models/cube";
-import Three from "../threeSingleton";
-import Rapier from "../rapierSingleton";
+import * as Three from "three";
+import * as Rapier from "@dimforge/rapier3d";
 import { FreeCamera } from "../models/freeCamera";
 import { StaticCamera } from "../models/staticCamera";
 import type { CameraAxis } from "../../types/cameraAxis.type";
@@ -14,8 +14,9 @@ import {
 	GameConfigurations,
 	type GameConfigurationsConfig,
 } from "../core/configuration";
+import { Player } from "../models/player";
 
-type Cameras = FreeCamera | StaticCamera;
+type Cameras = FreeCamera | StaticCamera | Player;
 
 export class MainScene implements Scene {
 	private readonly sceneInstance: Three.Scene;
@@ -46,23 +47,28 @@ export class MainScene implements Scene {
 			if (event.key !== "F") return;
 
 			if (!isFreeCameraEnabled) {
-				const staticCamera: StaticCamera =
-					this.modelCache.get<StaticCamera>("camera");
+				const player: Player = this.modelCache.get<Player>("camera");
 
-				const freeCamera: FreeCamera = new FreeCamera(75)
-					.addPosition(staticCamera.getPosition())
+				const freeCamera: FreeCamera = new FreeCamera(
+					gameConfigurations.fieldOfView,
+				)
+					.addPosition(player.getPosition())
 					.addAxis(this.cameraAxis)
 					.end();
 				this.modelCache.set("camera", freeCamera);
-				staticCamera.remove(this.sceneInstance);
+				player.remove(this.sceneInstance);
 			} else {
 				const freeCamera: FreeCamera =
 					this.modelCache.get<FreeCamera>("camera");
 				this.cameraAxis = freeCamera.getAxis();
 
-				const camera: StaticCamera = new StaticCamera(75)
+				const camera: Player = new Player(
+					new Three.Vector2(3, 5),
+					gameConfigurations.fieldOfView,
+				)
 					.addPosition(freeCamera.getPosition())
 					.addRotation(freeCamera.getRotation())
+					.addCollider(this.rapierWorld)
 					.end();
 				this.modelCache.set("camera", camera);
 				freeCamera.remove(this.sceneInstance);
@@ -72,6 +78,9 @@ export class MainScene implements Scene {
 	}
 
 	public loadContents(): void {
+		const gameConfigurations: GameConfigurationsConfig =
+			GameConfigurations.getConfigurations();
+
 		const ambientLight: AmbientLight = new AmbientLight(1).end();
 		ambientLight.add(this.sceneInstance);
 
@@ -83,10 +92,14 @@ export class MainScene implements Scene {
 			.end();
 		directionalLight.add(this.sceneInstance);
 
-		const camera: StaticCamera = new StaticCamera(75)
+		const player: Player = new Player(
+			new Three.Vector2(3, 5),
+			gameConfigurations.fieldOfView,
+		)
 			.addPosition(new Three.Vector3(0, 0, 10))
+			.addCollider(this.rapierWorld)
 			.end();
-		this.modelCache.set("camera", camera);
+		this.modelCache.set("camera", player);
 
 		for (let i = 0; i < 1000; i++) {
 			const boxMesh: Cube = new Cube(new Three.Vector3(3, 3, 3))
@@ -132,7 +145,8 @@ export class MainScene implements Scene {
 		this.modelCache.get<Cube>("floor").update();
 
 		const camera: Cameras = this.modelCache.get<Cameras>("camera");
-		if (camera instanceof FreeCamera) camera.update(gameTime);
+		if (camera instanceof FreeCamera || camera instanceof Player)
+			camera.update(gameTime);
 	}
 
 	public render(renderer: Three.WebGLRenderer): void {

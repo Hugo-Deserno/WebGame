@@ -1,4 +1,4 @@
-import type Three from "../game/threeSingleton";
+import type Three from "../game/core/threeSingleton";
 
 export type Scene = {
 	/**

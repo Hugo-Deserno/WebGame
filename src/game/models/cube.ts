@@ -1,9 +1,9 @@
 import { BaseModel } from "./baseModel";
 import type { Model } from "../../types/model.type";
-import Three from "../threeSingleton";
-import Rapier from "../rapierSingleton";
-import type { colliderType } from "../../types/colliderType.type";
+import Three from "../core/threeSingleton";
+import type { ColliderType } from "../../types/colliderType.type";
 import { Util } from "../util";
+import Rapier from "../core/rapierSingleton";
 
 export class Cube extends BaseModel implements Model {
 	private readonly boxGeom: Three.BoxGeometry;
@@ -59,12 +59,10 @@ export class Cube extends BaseModel implements Model {
 	}
 
 	public addCollider(
-		colliderType: colliderType,
+		colliderType: ColliderType,
 		rapierWorld: Rapier.World,
 	): Cube {
 		this.constructredCheck();
-		let rigidBodyDescription: Rapier.RigidBodyDesc | null = null;
-		let colliderDescription: Rapier.ColliderDesc | null = null;
 
 		const meshRotation: Rapier.Quaternion = new Rapier.Quaternion(
 			this.boxMesh.quaternion.x,
@@ -72,25 +70,18 @@ export class Cube extends BaseModel implements Model {
 			this.boxMesh.quaternion.z,
 			this.boxMesh.quaternion.w,
 		);
-		if (colliderType === "active") {
-			rigidBodyDescription = Rapier.RigidBodyDesc.dynamic()
-				.setTranslation(
-					this.boxMesh.position.x,
-					this.boxMesh.position.y,
-					this.boxMesh.position.z,
-				)
-				.setRotation(meshRotation);
-		} else {
-			rigidBodyDescription = Rapier.RigidBodyDesc.fixed()
-				.setTranslation(
-					this.boxMesh.position.x,
-					this.boxMesh.position.y,
-					this.boxMesh.position.z,
-				)
-				.setRotation(meshRotation);
-		}
 
-		colliderDescription = Rapier.ColliderDesc.cuboid(
+		let rigidBodyDescription: Rapier.RigidBodyDesc = Rapier.RigidBodyDesc[
+			Util.colliderTypeToRapierRigidBody(colliderType)
+		]()
+			.setTranslation(
+				this.boxMesh.position.x,
+				this.boxMesh.position.y,
+				this.boxMesh.position.z,
+			)
+			.setRotation(meshRotation);
+
+		let colliderDescription = Rapier.ColliderDesc.cuboid(
 			0.5 * this.boxGeom.parameters.width,
 			0.5 * this.boxGeom.parameters.height,
 			0.5 * this.boxGeom.parameters.depth,

@@ -1,5 +1,5 @@
 import type { Model } from "../../types/model.type";
-import Three from "../threeSingleton";
+import Three from "../core/threeSingleton";
 import { BaseModel } from "./baseModel";
 
 export class AmbientLight extends BaseModel implements Model {

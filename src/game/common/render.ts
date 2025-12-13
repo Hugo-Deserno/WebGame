@@ -3,7 +3,7 @@ import {
 	GameConfigurations,
 	type GameConfigurationsConfig,
 } from "../core/configuration";
-import Three from "../threeSingleton";
+import Three from "../core/threeSingleton";
 
 export class Renderer {
 	private webGLRenderer: Three.WebGLRenderer | null;

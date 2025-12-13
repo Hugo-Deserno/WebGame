@@ -1,5 +1,6 @@
-import Rapier from "./rapierSingleton";
-import Three from "./threeSingleton";
+import type { ColliderType } from "../types/colliderType.type";
+import Rapier from "./core/rapierSingleton";
+import Three from "./core/threeSingleton";
 
 export class Util {
 	/**
@@ -62,5 +63,12 @@ export class Util {
 			rapierQuaternion.z,
 			rapierQuaternion.w,
 		);
+	}
+
+	public static colliderTypeToRapierRigidBody(colliderType: ColliderType) {
+		if (colliderType === "active") return "dynamic";
+		if (colliderType === "passive") return "fixed";
+		if (colliderType === "kinematic") return "kinematicPositionBased";
+		return "fixed";
 	}
 }

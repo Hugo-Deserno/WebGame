@@ -36,7 +36,7 @@ export class GameConfigurations {
 			antiAlias: true,
 			shadows: true,
 			shadowSoftness: 2,
-			gravity: -9.81,
+			gravity: -125,
 		};
 		GameConfigurations.configurationSignals = new Map<
 			(State: unknown) => void,

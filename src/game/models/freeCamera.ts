@@ -1,6 +1,6 @@
 import type { Model } from "../../types/model.type";
 import { KeyManager } from "../core/keyManager";
-import Three from "../threeSingleton";
+import Three from "../core/threeSingleton";
 import { BaseModel } from "./baseModel";
 import type { CameraAxis } from "../../types/cameraAxis.type";
 

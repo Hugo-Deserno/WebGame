@@ -1,8 +1,8 @@
 import type { Scene } from "../types/scene.type";
 import { MainScene } from "./scenes/mainScene";
 import { LooseCache } from "./core/cache";
-import Three from "./threeSingleton";
 import { Renderer } from "./common/render";
+import Three from "./core/threeSingleton";
 
 // Singleton pattern game loop
 // can only be created once

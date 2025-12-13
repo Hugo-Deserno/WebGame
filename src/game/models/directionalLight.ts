@@ -3,7 +3,7 @@ import {
 	GameConfigurations,
 	type GameConfigurationsConfig,
 } from "../core/configuration";
-import Three from "../threeSingleton";
+import Three from "../core/threeSingleton";
 import { BaseModel } from "./baseModel";
 
 export class DirectionalLight extends BaseModel implements Model {
