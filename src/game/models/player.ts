@@ -336,13 +336,8 @@ export class Player extends BaseModel implements Model {
 
 				const rigidBodyVelocity: Three.Vector3 =
 					Util.rapierVectorToThree(this.rigidBody.linvel());
-				movementVector.copy(
-					new Three.Vector3(
-						movementVector.x,
-						rigidBodyVelocity.y * gameTime,
-						movementVector.z,
-					),
-				);
+				movementVector.copy(movementVector.clone());
+				movementVector.y = rigidBodyVelocity.y;
 
 				this.rigidBody.setLinvel(
 					Util.threeVectorToRapier(movementVector),
