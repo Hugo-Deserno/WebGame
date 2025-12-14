@@ -165,9 +165,7 @@ export class Player extends BaseModel implements Model {
 		let colliderDescription = Rapier.ColliderDesc.capsule(
 			0.5 * this.playerGeom.parameters.height,
 			this.playerGeom.parameters.radius,
-		)
-			.setRestitution(0.0)
-			.setFriction(0.7);
+		);
 
 		this.rigidBody = rapierWorld.createRigidBody(rigidBodyDescription);
 		this.rigidBody.setEnabledRotations(false, false, false, true);
