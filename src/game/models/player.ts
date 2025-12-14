@@ -165,7 +165,9 @@ export class Player extends BaseModel implements Model {
 		let colliderDescription = Rapier.ColliderDesc.capsule(
 			0.5 * this.playerGeom.parameters.height,
 			this.playerGeom.parameters.radius,
-		);
+		)
+			.setRestitution(0.0)
+			.setFriction(0.7);
 
 		this.rigidBody = rapierWorld.createRigidBody(rigidBodyDescription);
 		this.rigidBody.setEnabledRotations(false, false, false, true);
@@ -331,12 +333,13 @@ export class Player extends BaseModel implements Model {
 				movementVector.multiplyScalar(
 					this.playerSpeed * gameTime * 100,
 				);
+
 				const rigidBodyVelocity: Three.Vector3 =
 					Util.rapierVectorToThree(this.rigidBody.linvel());
 				movementVector.copy(
 					new Three.Vector3(
 						movementVector.x,
-						rigidBodyVelocity.y,
+						rigidBodyVelocity.y * gameTime,
 						movementVector.z,
 					),
 				);
