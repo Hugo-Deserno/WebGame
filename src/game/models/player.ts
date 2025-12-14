@@ -6,9 +6,9 @@ import Three from "../core/threeSingleton";
 import { Util } from "../util";
 import { BaseModel } from "./baseModel";
 
-const WALK_SPEED: number = 8;
+const WALK_SPEED: number = 16;
 const MAX_SPEED: number = 200;
-const ACCELERATION: number = 0.2;
+const ACCELERATION: number = 0.18;
 
 export class Player extends BaseModel implements Model {
 	private readonly playerGeom: Three.CapsuleGeometry;
@@ -227,7 +227,7 @@ export class Player extends BaseModel implements Model {
 			);
 			if (hitCheck || !this.isUserJump || !this.isMoving) {
 				this.playerSpeed = Three.MathUtils.clamp(
-					this.playerSpeed / 1.01,
+					this.playerSpeed / (1.01 + gameTime / 2),
 					WALK_SPEED,
 					MAX_SPEED,
 				);
@@ -236,7 +236,7 @@ export class Player extends BaseModel implements Model {
 				return;
 			}
 			this.playerSpeed = Three.MathUtils.clamp(
-				this.playerSpeed + ACCELERATION,
+				this.playerSpeed + ACCELERATION + gameTime,
 				WALK_SPEED,
 				MAX_SPEED,
 			);
