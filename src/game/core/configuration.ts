@@ -38,7 +38,7 @@ export class GameConfigurations {
 			antiAlias: true,
 			shadows: true,
 			shadowSoftness: 2,
-			gravity: -30,
+			gravity: -25,
 			playerCollisionGroup: 0b0001,
 			worldCollisionGroup: 0b0010,
 		};

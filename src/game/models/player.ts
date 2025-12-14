@@ -6,7 +6,7 @@ import Three from "../core/threeSingleton";
 import { Util } from "../util";
 import { BaseModel } from "./baseModel";
 
-const WALK_SPEED: number = 16;
+const WALK_SPEED: number = 8;
 const MAX_SPEED: number = 200;
 const ACCELERATION: number = 0.2;
 
@@ -14,6 +14,7 @@ export class Player extends BaseModel implements Model {
 	private readonly playerGeom: Three.CapsuleGeometry;
 	private readonly playerMesh: Three.Mesh;
 	private readonly playerCamera: Three.PerspectiveCamera;
+	private readonly playerModel: Three.Object3D;
 
 	private readonly resizeWindow: () => void;
 	private readonly mouseMove: (event: MouseEvent) => void;
@@ -26,28 +27,33 @@ export class Player extends BaseModel implements Model {
 	private playerSpeed: number;
 	private mouseVelocity: Three.Vector2;
 	private baseQuaternion: Three.Quaternion;
+
 	private isTouchingGround: boolean;
 	private isUserJump: boolean;
+	private isMoving: boolean;
 
 	constructor(startSize: Three.Vector2, fieldOfView: number) {
 		super();
+		this.playerModel = new Three.Object3D();
 		this.playerGeom = new Three.CapsuleGeometry(
 			startSize.x,
 			startSize.y,
 			4,
-			8,
+			20,
 			1,
 		);
 		this.playerMesh = new Three.Mesh(
 			this.playerGeom,
 			new Three.MeshBasicMaterial({ color: 0xffffff }),
 		);
+		this.playerModel.add(this.playerMesh);
 		this.playerCamera = new Three.PerspectiveCamera(
 			fieldOfView,
 			window.innerWidth / window.innerHeight,
 			0.1,
 			1000,
 		);
+		this.playerModel.add(this.playerCamera);
 		this.cameraGyro = {
 			yaw: 0,
 			pitch: 0,
@@ -55,8 +61,10 @@ export class Player extends BaseModel implements Model {
 		this.baseQuaternion = this.playerCamera.quaternion.clone();
 		this.mouseVelocity = new Three.Vector2(0, 0);
 		this.playerSpeed = WALK_SPEED;
+
 		this.isTouchingGround = false;
 		this.isUserJump = false;
+		this.isMoving = false;
 
 		this.mouseMove = (event: MouseEvent) => {
 			this.mouseVelocity.set(event.movementX, event.movementY);
@@ -97,6 +105,13 @@ export class Player extends BaseModel implements Model {
 	public addAxis(cameraAxis: CameraAxis): Player {
 		this.constructredCheck();
 		this.cameraGyro = cameraAxis;
+		return this;
+	}
+
+	public addShadow(): Player {
+		this.constructredCheck();
+		this.playerMesh.receiveShadow = true;
+		this.playerMesh.castShadow = true;
 		return this;
 	}
 
@@ -210,7 +225,7 @@ export class Player extends BaseModel implements Model {
 				undefined,
 				this.collider,
 			);
-			if (hitCheck) {
+			if (hitCheck || !this.isUserJump || !this.isMoving) {
 				this.playerSpeed = Three.MathUtils.clamp(
 					this.playerSpeed / 1.01,
 					WALK_SPEED,
@@ -220,8 +235,6 @@ export class Player extends BaseModel implements Model {
 				this.isUserJump = false;
 				return;
 			}
-			if (!this.isUserJump) return; // prevent regular falling from speeding up player
-
 			this.playerSpeed = Three.MathUtils.clamp(
 				this.playerSpeed + ACCELERATION,
 				WALK_SPEED,
@@ -288,18 +301,24 @@ export class Player extends BaseModel implements Model {
 					0,
 					0,
 				);
+				this.isMoving = false;
 				if (KeyManager.isActionPressed("moveForward")) {
 					movementVector.add(new Three.Vector3(0, 0, -0.01));
-				}
-				if (KeyManager.isActionPressed("moveBackward")) {
-					movementVector.add(new Three.Vector3(0, 0, 0.01));
+					this.isMoving = true;
 				}
 				if (KeyManager.isActionPressed("moveRight")) {
 					movementVector.add(new Three.Vector3(0.01, 0, 0));
+					this.isMoving = true;
 				}
 				if (KeyManager.isActionPressed("moveLeft")) {
 					movementVector.add(new Three.Vector3(-0.01, 0, 0));
+					this.isMoving = true;
 				}
+				if (KeyManager.isActionPressed("moveBackward")) {
+					movementVector.add(new Three.Vector3(0, 0, 0.01));
+					this.isMoving = false; // disable backwards b-hopping
+				}
+
 				movementVector.applyQuaternion(movementQuaternion);
 				if (movementVector.length() > 0) movementVector.normalize();
 
@@ -336,12 +355,15 @@ export class Player extends BaseModel implements Model {
 		return this.playerCamera;
 	}
 
+	public add(scene: Three.Scene): void {
+		scene.add(this.playerModel);
+	}
+
 	public remove(scene?: Three.Scene, world?: Rapier.World): void {
 		this.notConstructedCheck();
 		this.isAlive = false;
 		if (scene) {
-			scene.remove(this.playerMesh);
-			scene.remove(this.playerCamera);
+			scene.remove(this.playerModel);
 		}
 		if (world) {
 			if (this.collider) world.removeCollider(this.collider, true);

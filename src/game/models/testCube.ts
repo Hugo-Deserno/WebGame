@@ -4,36 +4,120 @@ import Three from "../core/threeSingleton";
 import type { ColliderType } from "../../types/colliderType.type";
 import { Util } from "../util";
 import Rapier from "../core/rapierSingleton";
+import testTexture from "../../assets/textures/testTexture.png";
+import { TextureLoader } from "../core/textureLoader";
 
-export class Cube extends BaseModel implements Model {
+/**
+ * Tri planer texture repeat
+ * */
+class TestCubeShaders {
+	/**
+	 * The function that should be bound to the material.onbeforecompile
+	 *
+	 * */
+	public static onBeforeCompile(shader: any) {
+		shader.uniforms.triScale = { value: 0.2 }; // tiles per unit
+
+		shader.vertexShader = shader.vertexShader.replace(
+			"#include <common>",
+			`
+    #include <common>
+    varying vec3 vObjPos;
+    varying vec3 vObjNormal;
+    `,
+		);
+
+		shader.vertexShader = shader.vertexShader.replace(
+			"#include <beginnormal_vertex>",
+			`
+    #include <beginnormal_vertex>
+    vObjNormal = normalize(normal);
+    `,
+		);
+
+		shader.vertexShader = shader.vertexShader.replace(
+			"#include <begin_vertex>",
+			`
+    #include <begin_vertex>
+    vObjPos = position;
+    `,
+		);
+
+		shader.fragmentShader = shader.fragmentShader.replace(
+			"#include <common>",
+			`
+    #include <common>
+    uniform float triScale;
+    varying vec3 vObjPos;
+    varying vec3 vObjNormal;
+    `,
+		);
+
+		shader.fragmentShader = shader.fragmentShader.replace(
+			"#include <map_fragment>",
+			`
+    vec3 n = abs(normalize(vObjNormal));
+    n /= (n.x + n.y + n.z);
+
+    vec2 uvX = vObjPos.zy * triScale;
+    vec2 uvY = vObjPos.xz * triScale;
+    vec2 uvZ = vObjPos.xy * triScale;
+
+    vec4 tx = texture2D(map, uvX);
+    vec4 ty = texture2D(map, uvY);
+    vec4 tz = texture2D(map, uvZ);
+
+    diffuseColor *= tx * n.x + ty * n.y + tz * n.z;
+    `,
+		);
+	}
+}
+
+export class TestCube extends BaseModel implements Model {
 	private readonly boxGeom: Three.BoxGeometry;
 	private readonly boxMesh: Three.Mesh;
+	private readonly boxTexture: Three.Texture;
 
 	private rigidBody?: Rapier.RigidBody;
 	private collider?: Rapier.Collider;
 
 	constructor(startSize: Three.Vector3) {
 		super();
+		const textureLoader: Three.TextureLoader =
+			TextureLoader.getTextureLoader();
+		this.boxTexture = textureLoader.load(testTexture);
+		this.boxTexture.colorSpace = Three.SRGBColorSpace;
+		this.boxTexture.wrapS = Three.RepeatWrapping;
+		this.boxTexture.wrapT = Three.RepeatWrapping;
+		this.boxTexture.repeat.set(50, 50);
+		this.boxTexture.minFilter = Three.LinearMipmapLinearFilter;
+		this.boxTexture.magFilter = Three.LinearFilter;
+		this.boxTexture.generateMipmaps = true;
+
 		this.boxGeom = new Three.BoxGeometry(
 			startSize.x,
 			startSize.y,
 			startSize.z,
 		);
-		this.boxMesh = new Three.Mesh(
-			this.boxGeom,
-			new Three.MeshBasicMaterial({ color: 0xffffff }),
-		);
+		const meshBasicMaterial: Three.MeshBasicMaterial =
+			new Three.MeshBasicMaterial({
+				color: 0xffffff,
+				map: this.boxTexture,
+			});
+		meshBasicMaterial.onBeforeCompile = TestCubeShaders.onBeforeCompile;
+
+		this.boxMesh = new Three.Mesh(this.boxGeom, meshBasicMaterial);
 		return this;
 	}
 
-	public addShadow(): Cube {
+	public addShadow(): TestCube {
 		this.constructredCheck();
 		this.boxMesh.receiveShadow = true;
 		this.boxMesh.castShadow = true;
 		return this;
 	}
 
-	public addRotation(rotation: Three.Euler): Cube {
+	public addRotation(rotation: Three.Euler): TestCube {
 		this.constructredCheck();
 		this.boxMesh.rotation.set(
 			rotation.x,
@@ -44,7 +128,7 @@ export class Cube extends BaseModel implements Model {
 		return this;
 	}
 
-	public addPosition(position: Three.Vector3): Cube {
+	public addPosition(position: Three.Vector3): TestCube {
 		this.constructredCheck();
 		if (this.rigidBody) {
 			this.rigidBody.setTranslation(
@@ -57,14 +141,18 @@ export class Cube extends BaseModel implements Model {
 		return this;
 	}
 
-	public addBasicMaterial(material: Three.MeshBasicMaterial): Cube {
+	public addBasicMaterial(material: Three.MeshBasicMaterial): TestCube {
 		this.constructredCheck();
+		material.map = this.boxTexture;
+		material.onBeforeCompile = TestCubeShaders.onBeforeCompile;
 		this.boxMesh.material = material;
 		return this;
 	}
 
-	public addPhongMaterial(material: Three.MeshPhongMaterial): Cube {
+	public addPhongMaterial(material: Three.MeshPhongMaterial): TestCube {
 		this.constructredCheck();
+		material.map = this.boxTexture;
+		material.onBeforeCompile = TestCubeShaders.onBeforeCompile;
 		this.boxMesh.material = material;
 		return this;
 	}
@@ -72,7 +160,7 @@ export class Cube extends BaseModel implements Model {
 	public addCollider(
 		colliderType: ColliderType,
 		rapierWorld: Rapier.World,
-	): Cube {
+	): TestCube {
 		this.constructredCheck();
 
 		const meshRotation: Rapier.Quaternion = new Rapier.Quaternion(
@@ -117,7 +205,7 @@ export class Cube extends BaseModel implements Model {
 		}
 	}
 
-	public end(): Cube {
+	public end(): TestCube {
 		this.constructredCheck();
 		this.isConstructed = true;
 		return this;

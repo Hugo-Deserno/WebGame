@@ -1,7 +1,7 @@
 import type { Scene } from "../../types/scene.type";
 import { DynamicCache } from "../core/cache";
 import type { Model } from "../../types/model.type";
-import { Cube } from "../models/cube";
+import { TestCube } from "../models/testCube";
 import * as Three from "three";
 import * as Rapier from "@dimforge/rapier3d";
 import { FreeCamera } from "../models/freeCamera";
@@ -68,7 +68,7 @@ export class MainScene implements Scene {
 					0,
 				);
 
-				const camera: Player = new Player(
+				const player: Player = new Player(
 					new Three.Vector2(3, 5),
 					gameConfigurations.fieldOfView,
 				)
@@ -77,10 +77,13 @@ export class MainScene implements Scene {
 						yaw: 0,
 						pitch: freeCamera.getAxis().pitch,
 					})
+					.addShadow()
 					.addCollider(this.rapierWorld)
 					.addRotation(playerRotation)
 					.end();
-				this.modelCache.set("camera", camera);
+				player.add(this.sceneInstance);
+
+				this.modelCache.set("camera", player);
 				freeCamera.remove(this.sceneInstance);
 			}
 			isFreeCameraEnabled = !isFreeCameraEnabled;
@@ -108,11 +111,13 @@ export class MainScene implements Scene {
 		)
 			.addPosition(new Three.Vector3(0, 0, 10))
 			.addCollider(this.rapierWorld)
+			.addShadow()
 			.end();
+		player.add(this.sceneInstance);
 		this.modelCache.set("camera", player);
 
 		for (let i = 0; i < 100; i++) {
-			const boxMesh: Cube = new Cube(new Three.Vector3(3, 3, 3))
+			const boxMesh: TestCube = new TestCube(new Three.Vector3(3, 3, 3))
 				.addPhongMaterial(
 					new Three.MeshPhongMaterial({ color: 0xffffff }),
 				)
@@ -124,7 +129,7 @@ export class MainScene implements Scene {
 			this.modelCache.set(`cube${i}`, boxMesh);
 		}
 
-		const boxMesh: Cube = new Cube(new Three.Vector3(20, 50, 3))
+		const boxMesh: TestCube = new TestCube(new Three.Vector3(20, 50, 3))
 			.addPhongMaterial(new Three.MeshPhongMaterial({ color: 0xffffff }))
 			.addShadow()
 			.addPosition(new Three.Vector3(10, 5, 0))
@@ -133,7 +138,9 @@ export class MainScene implements Scene {
 			.end();
 		boxMesh.add(this.sceneInstance);
 
-		const floorMesh: Cube = new Cube(new Three.Vector3(2000, 1, 2000))
+		const floorMesh: TestCube = new TestCube(
+			new Three.Vector3(2000, 1, 2000),
+		)
 			.addPosition(new Three.Vector3(0, -5, 0))
 			.addShadow()
 			.addCollider("passive", this.rapierWorld)
@@ -159,9 +166,9 @@ export class MainScene implements Scene {
 		this.rapierWorld.step();
 
 		for (let i = 0; i < 100; i++) {
-			this.modelCache.get<Cube>(`cube${i}`).update();
+			this.modelCache.get<TestCube>(`cube${i}`).update();
 		}
-		this.modelCache.get<Cube>("floor").update();
+		this.modelCache.get<TestCube>("floor").update();
 
 		const camera: Cameras = this.modelCache.get<Cameras>("camera");
 		if (camera instanceof FreeCamera) camera.update(gameTime);
