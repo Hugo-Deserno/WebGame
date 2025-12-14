@@ -8,6 +8,8 @@ import { BaseModel } from "./baseModel";
 
 const WALK_SPEED: number = 16;
 const MAX_SPEED: number = 200;
+const JUMP_HEIGHT: number = 1600;
+const MAX_JUMP_HEIGHT: number = 3400;
 const ACCELERATION: number = 0.18;
 
 export class Player extends BaseModel implements Model {
@@ -79,14 +81,13 @@ export class Player extends BaseModel implements Model {
 			this.rigidBody.applyImpulse(
 				new Rapier.Vector3(
 					0,
-					10000 *
-						Util.MapRange(
-							WALK_SPEED,
-							MAX_SPEED,
-							0.5,
-							1,
-							this.playerSpeed,
-						),
+					Util.MapRange(
+						WALK_SPEED,
+						MAX_SPEED,
+						JUMP_HEIGHT,
+						MAX_JUMP_HEIGHT,
+						this.playerSpeed,
+					),
 					0,
 				),
 				true,
@@ -227,7 +228,7 @@ export class Player extends BaseModel implements Model {
 			);
 			if (hitCheck || !this.isUserJump || !this.isMoving) {
 				this.playerSpeed = Three.MathUtils.clamp(
-					this.playerSpeed / (1.01 + gameTime / 2),
+					this.playerSpeed / (1.008 + gameTime / 2),
 					WALK_SPEED,
 					MAX_SPEED,
 				);
@@ -266,10 +267,17 @@ export class Player extends BaseModel implements Model {
 				);
 
 			this.mouseVelocity = new Three.Vector2(0, 0);
-			this.playerCamera.quaternion
-				.copy(this.baseQuaternion.clone())
+			const newCameraQuaternion: Three.Quaternion = this.baseQuaternion
+				.clone()
 				.multiply(quaternionYaw)
 				.multiply(quaternionPitch);
+
+			this.playerCamera.quaternion.copy(
+				this.playerCamera.quaternion.slerp(
+					newCameraQuaternion,
+					1 - Math.exp(-30 * gameTime),
+				),
+			);
 
 			// converts the camera into the playermesh
 			const playerCameraEuler: Three.Euler =
@@ -322,14 +330,19 @@ export class Player extends BaseModel implements Model {
 				movementVector.applyQuaternion(movementQuaternion);
 				if (movementVector.length() > 0) movementVector.normalize();
 
-				const rigidBodyVelocity: Three.Vector3 =
-					Util.rapierVectorToThree(this.rigidBody.linvel());
 				movementVector.multiplyScalar(
 					this.playerSpeed * gameTime * 100,
 				);
-				movementVector.add(
-					new Three.Vector3(0, rigidBodyVelocity.y, 0),
+				const rigidBodyVelocity: Three.Vector3 =
+					Util.rapierVectorToThree(this.rigidBody.linvel());
+				movementVector.copy(
+					new Three.Vector3(
+						movementVector.x,
+						rigidBodyVelocity.y,
+						movementVector.z,
+					),
 				);
+
 				this.rigidBody.setLinvel(
 					Util.threeVectorToRapier(movementVector),
 					true,
@@ -339,7 +352,10 @@ export class Player extends BaseModel implements Model {
 					Util.rapierVectorToThree(this.rigidBody.translation()),
 				);
 			}
-			this.playerCamera.position.copy(this.playerMesh.position.clone());
+			const playerMeshPostion: Three.Vector3 =
+				this.playerMesh.position.clone();
+			playerMeshPostion.y += this.playerGeom.parameters.height / 2;
+			this.playerCamera.position.copy(playerMeshPostion);
 		};
 
 		bunnyHop = bunnyHop.bind(this);

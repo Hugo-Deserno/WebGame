@@ -69,7 +69,7 @@ export class MainScene implements Scene {
 				);
 
 				const player: Player = new Player(
-					new Three.Vector2(3, 5),
+					new Three.Vector2(2, 4),
 					gameConfigurations.fieldOfView,
 				)
 					.addPosition(freeCamera.getPosition())
@@ -106,7 +106,7 @@ export class MainScene implements Scene {
 		directionalLight.add(this.sceneInstance);
 
 		const player: Player = new Player(
-			new Three.Vector2(3, 5),
+			new Three.Vector2(2, 4),
 			gameConfigurations.fieldOfView,
 		)
 			.addPosition(new Three.Vector3(0, 0, 10))
@@ -129,7 +129,7 @@ export class MainScene implements Scene {
 			this.modelCache.set(`cube${i}`, boxMesh);
 		}
 
-		const boxMesh: TestCube = new TestCube(new Three.Vector3(20, 50, 3))
+		const boxMesh: TestCube = new TestCube(new Three.Vector3(50, 200, 3))
 			.addPhongMaterial(new Three.MeshPhongMaterial({ color: 0xffffff }))
 			.addShadow()
 			.addPosition(new Three.Vector3(10, 5, 0))
